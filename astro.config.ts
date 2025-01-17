@@ -2,10 +2,7 @@ import { defineConfig } from 'astro/config'
 import mdx from '@astrojs/mdx'
 import sitemap from '@astrojs/sitemap'
 import tailwind from '@astrojs/tailwind'
-import solidJs from '@astrojs/solid-js'
-import node from '@astrojs/node'
-import UnoCSS from 'unocss/astro'
-import auth from 'auth-astro'
+import sharp from '@astrojs/sharp'
 
 export default defineConfig({
   site: 'https://example.com',
@@ -13,40 +10,25 @@ export default defineConfig({
     mdx(),
     sitemap(),
     tailwind(),
-    solidJs(),
-    UnoCSS(),
-    auth(),
+    sharp()
   ],
-  output: 'server',
-  adapter: node({
-    mode: 'standalone',
-  }),
   markdown: {
     shikiConfig: {
-      theme: 'github-light',
-      wrap: true,
-    },
-  },
-  experimental: {
-    contentLayer: true,
+      theme: 'github-dark',
+      wrap: true
+    }
   },
   vite: {
     resolve: {
       alias: {
         '@': '/src',
-        '~': '/src',
-        '@config': '/src/config',
         '@components': '/src/components',
         '@layouts': '/src/layouts',
-        '@i18n': '/src/i18n',
-        '@core': '/src/core',
         '@features': '/src/features',
-        '@utils': '/src/utils',
+        '@config': '/src/config',
+        '@i18n': '/src/i18n',
         '@types': '/src/types'
       }
-    },
-    optimizeDeps: {
-      exclude: ['auth-astro']
     }
   }
 })
