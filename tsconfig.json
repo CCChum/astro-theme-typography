@@ -13,7 +13,7 @@
     },
     "jsx": "preserve",
     "jsxImportSource": "solid-js",
-    "types": ["@astrojs/image/client", "@auth/core", "astro/client"]
+    "types": ["@auth/core", "astro/client"]
   },
   "include": ["src/**/*", "*.ts"],
   "exclude": ["node_modules", "dist"]

@@ -1,36 +1,55 @@
 ---
 import type { GetStaticPathsResult } from 'astro'
-import type { CollectionEntry, GetStaticPaths } from 'astro:content'
+import type { CollectionEntry } from 'astro:content'
 import type { Language, PostMeta, ThemeConfig } from '@/types'
 import { getCollection } from 'astro:content'
 import { themeConfig } from '@/config/default'
 import { useTranslations } from '@/i18n'
 import LayoutDefault from '@/layouts/LayoutDefault.astro'
-import Comments from '~/components/Comments.astro'
-import Pagination from '~/components/Pagination.astro'
-import SiteSeo from '~/components/SiteSeo.astro'
-import LayoutPost from '~/layouts/LayoutPost.astro'
+import Comments from '@/components/Comments.astro'
+import Pagination from '@/components/Pagination.astro'
+import SiteSeo from '@/components/SiteSeo.astro'
+import LayoutPost from '@/layouts/LayoutPost.astro'
 
 interface Props {
   post: CollectionEntry<'posts'>
-  content: string
+  content: any
+  prevPost: CollectionEntry<'posts'> | undefined
+  nextPost: CollectionEntry<'posts'> | undefined
+  config: ThemeConfig
 }
 
 export async function getStaticPaths(): Promise<GetStaticPathsResult> {
   const posts = await getCollection('posts', ({ data }) => !data.draft)
-  return posts.map(post => ({
-    params: { id: post.slug },
-    props: { 
-      post: post,
-      content: await post.render()
-    }
-  }))
+  const sortedPosts = posts.sort(
+    (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf()
+  )
+  
+  return Promise.all(
+    posts.map(async (post) => {
+      const currentIndex = sortedPosts.findIndex((p) => p.slug === post.slug)
+      const prevPost = currentIndex < sortedPosts.length - 1 ? sortedPosts[currentIndex + 1] : undefined
+      const nextPost = currentIndex > 0 ? sortedPosts[currentIndex - 1] : undefined
+      
+      const rendered = await post.render()
+      return {
+        params: { id: post.slug },
+        props: { 
+          post: post,
+          content: rendered.Content,
+          prevPost,
+          nextPost,
+          config: themeConfig
+        }
+      }
+    })
+  )
 }
 
-const { post, content } = Astro.props
+const { post, content: Content, prevPost, nextPost, config } = Astro.props
 const { t } = useTranslations(Astro.locals.language as Language || 'en')
 
-const postMeta: PostMeta = {
+const postMeta = {
   id: post.id,
   title: post.data.title,
   publishDate: post.data.pubDate,
@@ -44,117 +63,79 @@ const postMeta: PostMeta = {
   collection: 'posts',
   body: post.body,
   data: post.data
-}
+} as const
 
-const pageTitle = `${postMeta.title} - ${themeConfig.site.title}`
-const description = postMeta.description || themeConfig.site.description
-
-// Get previous and next posts
-const posts = await getCollection('posts', ({ data }) => !data.draft)
-const sortedPosts = posts.sort(
-  (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf()
-)
-const currentIndex = sortedPosts.findIndex((p) => p.slug === postMeta.slug)
-const prevPost = currentIndex < sortedPosts.length - 1 ? sortedPosts[currentIndex + 1] : null
-const nextPost = currentIndex > 0 ? sortedPosts[currentIndex - 1] : null
+const pageTitle = `${postMeta.title} - ${config.site.title}`
+const description = postMeta.description || config.site.description
 ---
 
 <LayoutDefault
-  config={themeConfig}
   title={pageTitle}
   description={description}
+  seo={{
+    type: 'article',
+    title: pageTitle,
+    description: description
+  }}
 >
-  <SiteSeo slot="head" {pageTitle} {description} />
-  <LayoutPost post={postMeta}>
+  <LayoutPost 
+    post={post} 
+    config={config}
+    prev={prevPost}
+    next={nextPost}
+  >
     <div class="prose dark:prose-invert mx-auto">
       <h1>{postMeta.title}</h1>
-      {postMeta.description && <p class="text-xl text-gray-500 dark:text-gray-400">{postMeta.description}</p>}
+      {postMeta.description && (
+        <p class="text-xl text-gray-500 dark:text-gray-400">
+          {postMeta.description}
+        </p>
+      )}
       <div class="flex items-center space-x-4 text-gray-500">
         <time datetime={postMeta.publishDate.toISOString()}>
           {new Date(postMeta.publishDate).toLocaleDateString()}
         </time>
       </div>
-      <div class="mt-8" set:html={content} />
+      <div class="mt-8">
+        <Content />
+      </div>
     </div>
   </LayoutPost>
   
-  <div class="mt-8">
-    <Comments />
-  </div>
-  {
-    (prevPost || nextPost) && (
-      <nav class="mt-8 flex items-center justify-between">
-        {prevPost && (
-          <a
-            href={`/posts/${prevPost.slug}`}
-            class="group flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900"
-          >
-            <svg
-              class="h-5 w-5"
-              viewBox="0 0 20 20"
-              fill="currentColor"
-              aria-hidden="true"
-            >
-              <path
-                fill-rule="evenodd"
-                d="M18 10a.75.75 0 01-.75.75H4.66l2.1 1.95a.75.75 0 11-1.02 1.1l-3.5-3.25a.75.75 0 010-1.1l3.5-3.25a.75.75 0 111.02 1.1l-2.1 1.95h12.59A.75.75 0 0118 10z"
-                clip-rule="evenodd"
-              />
-            </svg>
-            {t('meta.previous')}
-          </a>
-        )}
-        {nextPost && (
-          <a
-            href={`/posts/${nextPost.slug}`}
-            class="group ml-auto flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900"
-          >
-            {t('meta.next')}
-            <svg
-              class="h-5 w-5"
-              viewBox="0 0 20 20"
-              fill="currentColor"
-              aria-hidden="true"
-            >
-              <path
-                fill-rule="evenodd"
-                d="M2 10a.75.75 0 01.75-.75h12.59l-2.1-1.95a.75.75 0 111.02-1.1l3.5 3.25a.75.75 0 010 1.1l-3.5 3.25a.75.75 0 11-1.02-1.1l2.1-1.95H2.75A.75.75 0 012 10z"
-                clip-rule="evenodd"
-              />
-            </svg>
-          </a>
-        )}
-      </nav>
-    )
-  }
+  {config.comment && (
+    <div class="mt-8">
+      <Comments config={config.comment} url={Astro.url.href} title={pageTitle} id={post.id} />
+    </div>
+  )}
 </LayoutDefault>
 
 <script>
-  import '@github/clipboard-copy-element'
-
-  document.addEventListener('clipboard-copy', (event) => {
-    const target = event.target as HTMLElement
-    const icon = target.querySelector('.icon') as HTMLElement
-    icon.classList.replace('i-mdi-content-copy', 'i-mdi-check')
-    setTimeout(() => {
-      icon.classList.replace('i-mdi-check', 'i-mdi-content-copy')
-    }, 1500)
-  })
-
   const codeBlocks = Array.from(document.querySelectorAll('pre'))
   const icon = "<div class='i-mdi-content-copy icon text-white'></div>"
+  const checkIcon = "<div class='i-mdi-check icon text-white'></div>"
+
   for (const codeBlock of codeBlocks) {
     const wrapper = document.createElement('div')
     wrapper.className = 'code-container'
 
-    const copyButton = document.createElement('clipboard-copy')
+    const copyButton = document.createElement('button')
     const code = codeBlock.querySelector('code')
-    copyButton.value = code?.textContent ?? ''
     copyButton.className = 'clipboard-copy'
     copyButton.innerHTML = icon
 
-    codeBlock.appendChild(copyButton)
+    copyButton.addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(code?.textContent ?? '')
+        copyButton.innerHTML = checkIcon
+        setTimeout(() => {
+          copyButton.innerHTML = icon
+        }, 1500)
+      } catch (err) {
+        console.error('Failed to copy text:', err)
+      }
+    })
 
+    codeBlock.appendChild(copyButton)
     codeBlock.parentNode?.insertBefore(wrapper, codeBlock)
     wrapper.appendChild(codeBlock)
   }
@@ -174,6 +155,10 @@ const nextPost = currentIndex > 0 ? sortedPosts[currentIndex - 1] : null
     justify-content: center;
     align-items: center;
     border-radius: 0.25rem;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 0;
   }
 
   .clipboard-copy:hover {
