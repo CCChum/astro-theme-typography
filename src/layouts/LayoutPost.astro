@@ -1,24 +1,55 @@
 ---
 import type { CollectionEntry } from 'astro:content'
+import type { PostMeta, ThemeConfig } from '@/types'
 import LayoutDefault from './LayoutDefault.astro'
-import PostMeta from '@/components/PostMeta.astro'
+import PostMetaComponent from '@/components/PostMeta.astro'
 import Comments from '@/components/Comments.astro'
 
 interface Props {
   post: CollectionEntry<'posts'>
   prev?: CollectionEntry<'posts'>
   next?: CollectionEntry<'posts'>
+  config: ThemeConfig
 }
 
-const { post, prev, next } = Astro.props
-const { title, description } = post.data
+const { post, prev, next, config } = Astro.props
+const { title, description, pubDate: publishDate, updatedDate, categories, tags } = post.data
+
+const postMeta: PostMeta = {
+  title,
+  description,
+  publishDate,
+  updatedDate,
+  categories,
+  tags,
+  slug: post.slug,
+  collection: post.collection,
+  body: post.body
+}
+
+// Convert prev/next to PostMeta format if they exist
+const prevPost = prev && {
+  ...prev.data,
+  publishDate: prev.data.pubDate,
+  slug: prev.slug,
+  collection: prev.collection,
+  body: prev.body
+} as PostMeta
+
+const nextPost = next && {
+  ...next.data,
+  publishDate: next.data.pubDate,
+  slug: next.slug,
+  collection: next.collection,
+  body: next.body
+} as PostMeta
 ---
 
-<LayoutDefault title={title} description={description}>
+<LayoutDefault title={title} description={description} config={config}>
   <article class="prose prose-lg dark:prose-invert mx-auto">
     <header class="mb-8">
       <h1 class="text-4xl font-bold mb-4">{title}</h1>
-      <PostMeta post={post} />
+      <PostMetaComponent post={postMeta} />
     </header>
 
     <div class="mt-8">
@@ -27,25 +58,25 @@ const { title, description } = post.data
 
     <footer class="mt-8 pt-8 border-t">
       <nav class="flex justify-between">
-        {prev && (
-          <a href={`/posts/${prev.slug}`} class="group">
-            <div class="text-sm text-gray-500">Previous</div>
-            <div class="text-lg font-medium group-hover:text-gray-700 dark:group-hover:text-gray-300">
-              {prev.data.title}
+        {prevPost && (
+          <a href={`/posts/${prevPost.slug}`} class="group">
+            <div class="text-sm text-gray-500">← Previous Post</div>
+            <div class="font-medium text-gray-700 group-hover:text-primary-600">
+              {prevPost.title}
             </div>
           </a>
         )}
-        {next && (
-          <a href={`/posts/${next.slug}`} class="group ml-auto text-right">
-            <div class="text-sm text-gray-500">Next</div>
-            <div class="text-lg font-medium group-hover:text-gray-700 dark:group-hover:text-gray-300">
-              {next.data.title}
+        {nextPost && (
+          <a href={`/posts/${nextPost.slug}`} class="group ml-auto text-right">
+            <div class="text-sm text-gray-500">Next Post →</div>
+            <div class="font-medium text-gray-700 group-hover:text-primary-600">
+              {nextPost.title}
             </div>
           </a>
         )}
       </nav>
     </footer>
-  </article>
 
-  <Comments />
+    {config.comment && <Comments config={config.comment} />}
+  </article>
 </LayoutDefault>

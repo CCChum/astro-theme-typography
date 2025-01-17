@@ -1,5 +1,10 @@
 ---
-import { themeConfig } from '@/core/.config'
+import type { ThemeConfig } from '@/types'
+import { useTranslations } from '@/i18n'
+import BaseHead from '@/components/BaseHead.astro'
+import Header from '@/components/Header.astro'
+import Footer from '@/components/Footer.astro'
+import ThemeProvider from '@/components/ThemeProvider.astro'
 import SiteFooter from '@/components/SiteFooter.astro'
 import SiteNavigation from '@/components/SiteNavigation.astro'
 import SiteTitle from '@/components/SiteTitle.astro'
@@ -9,51 +14,56 @@ import Analytics from '@/components/Analytics.astro'
 import ThemeScript from '@/components/ThemeScript.astro'
 
 interface Props {
+  config: ThemeConfig
   title?: string
   description?: string
   image?: string
   canonicalURL?: URL
+  class?: string
 }
 
-const { title, description, image, canonicalURL } = Astro.props
+const { 
+  config,
+  title,
+  description,
+  image,
+  canonicalURL,
+  class: className = ''
+} = Astro.props
 
-const { site, appearance } = themeConfig
+const t = useTranslations(config.language || 'en')
 ---
 
 <!DOCTYPE html>
-<html lang={appearance.locale}>
+<html lang={config.language || 'en'} data-theme={config.appearance?.theme}>
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="generator" content={Astro.generator} />
+    <BaseHead title={title} description={description} image={image} />
     <SiteSeo
       title={title}
       description={description}
       image={image}
       canonicalURL={canonicalURL}
+      config={config}
     />
-    <LaTeX />
-    <Analytics />
     <ThemeScript />
+    <LaTeX />
   </head>
-  <body class="min-h-screen bg-white text-gray-800 antialiased dark:bg-gray-900 dark:text-gray-200">
-    <div class="mx-auto max-w-screen-xl px-4 sm:px-6 lg:px-8">
-      <header class="py-10">
-        <div class="flex flex-col items-center justify-between gap-4 sm:flex-row">
-          <SiteTitle />
-          <SiteNavigation />
-        </div>
-      </header>
-
-      <main class="min-h-screen py-8">
+  <body class={`min-h-screen bg-white dark:bg-gray-900 ${className}`}>
+    <ThemeProvider>
+      <Header>
+        <SiteTitle config={config} />
+        <SiteNavigation config={config} />
+      </Header>
+      <main class="py-12 px-4 sm:px-6 lg:px-8">
         <slot />
       </main>
-
-      <footer class="mt-20">
-        <SiteFooter />
-      </footer>
-    </div>
+      <SiteFooter config={config} />
+      {config.analytics && <Analytics config={config.analytics} />}
+    </ThemeProvider>
   </body>
 </html>
 
@@ -69,5 +79,18 @@ const { site, appearance } = themeConfig
   }
   code {
     font-family: var(--font-family-mono);
+  }
+  .layout {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+  }
+
+  main {
+    flex: 1;
+    width: 100%;
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 1rem;
   }
 </style>

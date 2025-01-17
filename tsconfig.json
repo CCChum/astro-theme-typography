@@ -4,26 +4,16 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["src/*"],
-      "~/*": ["src/*"],
-      "@config/*": ["src/config/*"],
-      "@components/*": ["src/components/*"],
-      "@layouts/*": ["src/layouts/*"],
-      "@i18n/*": ["src/i18n/*"],
-      "@core/*": ["src/core/*"],
-      "@features/*": ["src/features/*"],
-      "@utils/*": ["src/utils/*"],
-      "@types/*": ["src/types/*"]
+      "@/config/*": ["src/config/*"],
+      "@/layouts/*": ["src/layouts/*"],
+      "@/components/*": ["src/components/*"],
+      "@/utils/*": ["src/utils/*"],
+      "@/types": ["src/types/index.ts"],
+      "@/types/*": ["src/types/*"]
     },
     "jsx": "preserve",
     "jsxImportSource": "solid-js",
-    "types": ["astro/client"],
-    "verbatimModuleSyntax": true,
-    "strict": true,
-    "skipLibCheck": true,
-    "module": "ESNext",
-    "moduleResolution": "node",
-    "allowSyntheticDefaultImports": true,
-    "esModuleInterop": true
+    "types": ["@astrojs/image/client", "@auth/core", "astro/client"]
   },
   "include": ["src/**/*", "*.ts"],
   "exclude": ["node_modules", "dist"]

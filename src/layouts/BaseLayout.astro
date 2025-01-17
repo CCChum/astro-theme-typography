@@ -1,0 +1,16 @@
+---
+import type { ThemeConfig } from '@/types'
+import LayoutDefault from '@/features/common/layouts/LayoutDefault.astro'
+
+export interface Props {
+  config: ThemeConfig
+  title?: string
+  description?: string
+}
+
+const { config, title, description } = Astro.props
+---
+
+<LayoutDefault config={config} title={title} description={description}>
+  <slot />
+</LayoutDefault>

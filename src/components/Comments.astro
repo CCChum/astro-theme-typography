@@ -1,49 +1,32 @@
 ---
-import { themeConfig } from '@/config/default'
-import Disqus from './comments/Disqus.astro'
+import type { CommentConfig } from '@/types'
 import Giscus from './comments/Giscus.astro'
+import Disqus from './comments/Disqus.astro'
 import Utterances from './comments/Utterances.astro'
 import Twikoo from './comments/Twikoo.astro'
 
 interface Props {
+  config: CommentConfig
   url?: string
   title?: string
   id?: string
 }
 
-const { url, title, id } = Astro.props
-const { comment } = themeConfig
-
-const hasDisqus = comment.disqus
-const hasGiscus = comment.giscus
-const hasUtterances = comment.utterances
-const hasTwikoo = comment.twikoo
-
+const { config, url, title, id } = Astro.props
 ---
 
-<div class="mt-16">
+<div class="mt-8">
   {
-    hasDisqus && (
-      <Disqus
+    config.giscus && (
+      <Giscus
+        config={config.giscus}
         url={url}
         title={title}
         id={id}
       />
     )
   }
-  {
-    hasGiscus && (
-      <Giscus />
-    )
-  }
-  {
-    hasUtterances && (
-      <Utterances />
-    )
-  }
-  {
-    hasTwikoo && (
-      <Twikoo />
-    )
-  }
+  {config.disqus && <Disqus config={config.disqus} />}
+  {config.utterances && <Utterances config={config.utterances} />}
+  {config.twikoo && <Twikoo config={config.twikoo} />}
 </div>

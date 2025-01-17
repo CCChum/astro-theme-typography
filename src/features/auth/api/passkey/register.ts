@@ -6,6 +6,7 @@ import {
 import type {
   GenerateRegistrationOptionsOpts,
   VerifyRegistrationResponseOpts,
+  RegistrationResponseJSON
 } from '@simplewebauthn/server'
 
 const rpID = import.meta.env.WEBAUTHN_RP_ID || 'blog.chumyin.com'
@@ -53,7 +54,7 @@ export const get: APIRoute = async () => {
 
 export const post: APIRoute = async ({ request }) => {
   try {
-    const body = await request.json()
+    const body = await request.json() as RegistrationResponseJSON
     const userId = '1' // 在實際應用中，這應該是經過身份驗證的用戶 ID
     const expectedChallenge = challengeStore.get(userId)
 
@@ -71,16 +72,19 @@ export const post: APIRoute = async ({ request }) => {
       expectedChallenge,
       expectedOrigin,
       expectedRPID: rpID,
-    })
+    } as VerifyRegistrationResponseOpts)
 
-    if (verification.verified) {
+    if (verification.verified && verification.registrationInfo) {
       // 在實際應用中，這裡應該將認證器信息保存到數據庫
-      const { credential, credentialType, attestationObject } = verification.registrationInfo!
+      const { credential } = verification.registrationInfo
 
       // 清理挑戰
       challengeStore.delete(userId)
 
-      return new Response(JSON.stringify({ success: true }), {
+      return new Response(JSON.stringify({ 
+        success: true,
+        credentialId: credential.id,
+      }), {
         status: 200,
         headers: {
           'Content-Type': 'application/json',

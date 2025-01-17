@@ -1,10 +1,8 @@
 ---
-import { themeConfig } from '@/core/.config'
+import { themeConfig } from '@/config/default'
 
-const { site } = themeConfig
-const { navLinks } = site
+const { site, navLinks, socialLinks } = themeConfig
 const { translate: t } = Astro.locals
-const socialLinks = site.socialLinks
 
 interface NavItem {
   name: string
@@ -52,4 +50,20 @@ function renderNavItem({ name, href }: NavItem) {
   <ul class="flex gap-4">
     {navLinks.map(renderNavItem)}
   </ul>
+</nav>
+
+<nav class="flex items-center justify-between">
+  <div class="flex items-center space-x-4">
+    {navLinks.map(({ name, href }) => (
+      <a href={href} class="hover:underline">{t(name)}</a>
+    ))}
+  </div>
+
+  <div class="flex items-center space-x-4">
+    {socialLinks.map(({ name, href }) => (
+      <a href={href} class="hover:underline" target="_blank" rel="noopener noreferrer">
+        {name}
+      </a>
+    ))}
+  </div>
 </nav>

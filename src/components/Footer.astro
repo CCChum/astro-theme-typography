@@ -1,0 +1,22 @@
+---
+import type { ThemeConfig } from '@/types'
+
+interface Props {
+  config: ThemeConfig
+}
+
+const { config } = Astro.props
+---
+
+<footer class="py-6 mt-auto">
+  <div class="container mx-auto px-4">
+    <div class="text-center text-sm text-gray-600 dark:text-gray-400">
+      {config.footer.map((text, i) => (
+        <>
+          {i > 0 && " • "}
+          <span set:html={text} />
+        </>
+      ))}
+    </div>
+  </div>
+</footer>

@@ -1,0 +1,35 @@
+---
+// No props needed for this component
+---
+
+<script is:inline>
+  function getThemePreference() {
+    if (typeof localStorage !== 'undefined' && localStorage.getItem('theme')) {
+      return localStorage.getItem('theme')
+    }
+    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+  }
+
+  function updateTheme(theme) {
+    document.documentElement.classList.remove('light', 'dark')
+    document.documentElement.classList.add(theme)
+    localStorage.setItem('theme', theme)
+  }
+
+  // Initialize theme
+  const theme = getThemePreference()
+  updateTheme(theme)
+
+  // Listen for theme toggle
+  window.addEventListener('theme-change', (e) => {
+    updateTheme(e.detail)
+  })
+</script>
+
+<div id="theme-provider"></div>
+
+<style>
+  #theme-provider {
+    display: none;
+  }
+</style>

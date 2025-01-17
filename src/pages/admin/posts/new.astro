@@ -1,17 +1,28 @@
 ---
-import { getSession } from 'auth-astro/server'
+import type { AdminLayoutProps } from '@/types'
 import AdminLayout from '../../../layouts/AdminLayout.astro'
+import { getSession } from 'auth-astro/server'
+import { themeConfig } from '@/config/default'
+
+interface Props extends AdminLayoutProps {}
 
 const session = await getSession(Astro.request)
 if (!session) {
   return Astro.redirect('/auth/login')
 }
+
+const title = '新建文章'
 ---
 
-<AdminLayout title="新建文章">
+<AdminLayout
+  config={themeConfig}
+  title={title}
+  description="新建文章"
+  requireAuth={true}
+>
   <div class="p-6">
     <div class="mb-6">
-      <h1 class="text-2xl font-bold">新建文章</h1>
+      <h1 class="text-2xl font-bold">{title}</h1>
     </div>
 
     <form

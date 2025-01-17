@@ -1,9 +1,14 @@
 import type { APIRoute } from 'astro'
 import { themeConfig } from '@/config/default'
 
+interface LoginCredentials {
+  username: string
+  password: string
+}
+
 export const post: APIRoute = async ({ request }) => {
   try {
-    const data = await request.json()
+    const data = await request.json() as LoginCredentials
     const { username, password } = data
 
     if (!username || !password) {

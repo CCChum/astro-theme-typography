@@ -1,5 +1,6 @@
 ---
-import { config } from '../../.config/user'
+import type { ThemeConfig } from '@/types'
+import { themeConfig } from '../config/default'
 import SiteFooter from '@/components/SiteFooter.astro'
 import SiteNavigation from '@/components/SiteNavigation.astro'
 import SiteSeo from '@/components/SiteSeo.astro'
@@ -12,45 +13,67 @@ interface Props {
   title?: string
   description?: string
   image?: string
-  type?: string
+  config?: ThemeConfig
+  seo?: {
+    type?: 'website' | 'article'
+    title?: string
+    description?: string
+    image?: string
+  }
 }
 
 const {
+  config = themeConfig,
   title = config.site.title,
   description = config.site.description,
   image,
-  type = 'website',
+  seo
 } = Astro.props
+
+// Merge SEO data with proper type checking
+const seoData = {
+  type: seo?.type || 'website',
+  title: seo?.title || title,
+  description: seo?.description || description,
+  image: seo?.image || image
+}
+
 ---
 
-<!doctype html>
-<html lang={config.site.lang}>
+<!DOCTYPE html>
+<html lang={config.language || 'en'} class="h-full">
   <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width" />
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="generator" content={Astro.generator} />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <SiteSeo {title} {description} {image} {type} />
+    <SiteSeo {...seoData} />
     <ThemeScript />
+    <slot name="head" />
   </head>
-  <body>
-    <div class="mx-auto max-w-3xl px-4 py-8">
-      <header class="mb-8">
-        <nav class="flex items-center justify-between">
-          <SiteTitle />
-          <div class="flex items-center space-x-4">
-            <SiteNavigation />
-            <ThemeToggle />
+  <body class="h-full bg-white dark:bg-gray-900">
+    <div class="flex min-h-full flex-col">
+      <header class="border-b border-gray-200 dark:border-gray-800">
+        <div class="container mx-auto px-4">
+          <div class="flex items-center justify-between py-4">
+            <SiteTitle config={config} />
+            <div class="flex items-center space-x-4">
+              <SiteNavigation config={config} />
+              <ThemeToggle />
+            </div>
           </div>
-        </nav>
+        </div>
       </header>
 
-      <main class="py-8">
-        <slot />
+      <main class="flex-1">
+        <div class="container mx-auto px-4 py-8">
+          <slot />
+        </div>
       </main>
 
-      <SiteFooter />
+      <SiteFooter config={config} />
     </div>
-
+    <slot name="footer" />
     <script>
       // Add animation class after page load
       document.documentElement.classList.add('animation-prepared')

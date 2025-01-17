@@ -1,45 +1,31 @@
 ---
-import { themeConfig } from '@/config/default'
+import type { ThemeConfig } from '@/types'
+import GoogleAnalytics from './analytics/GoogleAnalytics.astro'
+import BaiduAnalytics from './analytics/BaiduAnalytics.astro'
 
-interface Analytics {
-  googleAnalyticsId?: string
-  umamiAnalyticsId?: string
+interface Props {
+  config: ThemeConfig['analytics']
 }
 
-const analytics: Analytics = {
-  googleAnalyticsId: import.meta.env.GOOGLE_ANALYTICS_ID,
-  umamiAnalyticsId: import.meta.env.UMAMI_ANALYTICS_ID,
-}
+const { config } = Astro.props
 
-const { googleAnalyticsId, umamiAnalyticsId } = analytics
+const googleAnalyticsId = config?.google?.id
+const baiduAnalyticsId = config?.baidu?.id
 ---
 
 {
   googleAnalyticsId && (
-    <>
-      <script
-        type="text/partytown"
-        src={`https://www.googletagmanager.com/gtag/js?id=${googleAnalyticsId}`}
-      />
-      <script type="text/partytown" define:vars={{ googleAnalyticsId }}>
-        window.dataLayer = window.dataLayer || []
-        function gtag() {
-          dataLayer.push(arguments)
-        }
-        gtag('js', new Date())
-        gtag('config', googleAnalyticsId)
-      </script>
-    </>
+    <GoogleAnalytics id={googleAnalyticsId} />
   )
 }
 
 {
-  umamiAnalyticsId && (
-    <script
-      async
-      defer
-      data-website-id={umamiAnalyticsId}
-      src="https://analytics.umami.is/script.js"
-    />
+  baiduAnalyticsId && (
+    <BaiduAnalytics id={baiduAnalyticsId} />
   )
 }
+
+<script define:vars={{ googleAnalyticsId }}>
+  window.dataLayer = window.dataLayer || [];
+  window.googleAnalyticsId = googleAnalyticsId;
+</script>

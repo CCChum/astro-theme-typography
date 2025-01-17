@@ -5,8 +5,6 @@ pubDate: 2024-01-15
 category: General
 ---
 
-# Hello World
-
 Welcome to Astro Typography, a clean and minimal blog theme built with Astro and UnoCSS.
 
 ## Features
@@ -19,51 +17,65 @@ Welcome to Astro Typography, a clean and minimal blog theme built with Astro and
 - Sitemap
 - Categories
 - Archive
-- Comments (Giscus/Utterances)
-- Analytics (Google Analytics/Umami)
-- WebAuthn authentication
-- Admin dashboard
-- Markdown/MDX support
-- Code syntax highlighting
-- And more...
 
 ## Getting Started
 
-1. Clone the repository
-2. Install dependencies
-3. Configure your site
-4. Start writing
+### Installation
 
-## Configuration
+```bash
+# Clone the repository
+git clone https://github.com/yourusername/astro-theme-typography.git
 
-Edit the `.config.ts` file to customize your site:
+# Install dependencies
+pnpm install
+
+# Start development server
+pnpm dev
+```
+
+### Configuration
+
+Edit `.config/user.ts` to customize your blog:
 
 ```typescript
-export const themeConfig = {
+export const config = {
   site: {
-    title: 'Your Site Title',
-    description: 'Your site description',
-    // ...
+    title: 'My Blog',
+    description: 'A personal blog built with Astro'
   },
-  // ...
+  // ... more configuration options
 }
 ```
 
 ## Writing Posts
 
-Create a new `.md` or `.mdx` file in the `src/content/posts` directory:
+Create markdown files in `src/content/posts` directory:
 
 ```markdown
 ---
-title: Your Post Title
-description: Your post description
+title: My New Post
+description: A brief description
 pubDate: 2024-01-15
-category: Your Category
+category: General
 ---
 
 Your post content here...
 ```
 
+## Deployment
+
+Build your site for production:
+
+```bash
+pnpm build
+```
+
+Deploy to your favorite hosting platform!
+
+## Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
 ## License
 
-MIT
+MIT License 2024

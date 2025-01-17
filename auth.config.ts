@@ -1,55 +1,35 @@
-import type { AuthConfig } from '@auth/core'
-import Credentials from '@auth/core/providers/credentials'
-import { themeConfig } from '@/config/default'
-import type { CustomSession } from '@/types'
+import type { AuthConfig, User } from '@auth/core'
+import type { CustomUser } from './src/types'
+import GitHub from '@auth/core/providers/github'
+
+export interface CustomUser extends User {
+  role?: 'admin' | 'user'
+}
 
 export const authConfig: AuthConfig = {
   providers: [
-    Credentials({
-      credentials: {
-        username: { label: 'Username', type: 'text' },
-        password: { label: 'Password', type: 'password' },
-      },
-      async authorize(credentials) {
-        if (!credentials?.username || !credentials?.password) return null
-
-        const { username, password } = credentials
-        const { admin } = themeConfig
-
-        if (admin && username === admin.username && password === admin.password) {
-          return {
-            id: '1',
-            name: admin.username,
-            email: `${admin.username}@example.com`,
-            password: admin.password
-          }
-        }
-
-        return null
-      },
+    GitHub({
+      clientId: process.env.GITHUB_ID || '',
+      clientSecret: process.env.GITHUB_SECRET || '',
     }),
   ],
   callbacks: {
-    async signIn() {
-      return true
-    },
-    async session({ session, token }) {
-      const customSession = session as CustomSession
-      if (token && customSession.user) {
-        customSession.user.id = token.sub as string
-      }
-      return customSession
-    },
     async jwt({ token, user }) {
       if (user) {
-        token.sub = user.id
+        token.role = (user as CustomUser).role || 'user'
       }
       return token
+    },
+    async session({ session, token }) {
+      if (session.user) {
+        (session.user as CustomUser).role = token.role as 'admin' | 'user'
+      }
+      return session
     },
   },
   pages: {
     signIn: '/auth/login',
+    error: '/auth/error',
   },
-  secret: process.env.AUTH_SECRET || 'your-secret-key',
-  trustHost: true,
+  secret: import.meta.env.AUTH_SECRET,
 }

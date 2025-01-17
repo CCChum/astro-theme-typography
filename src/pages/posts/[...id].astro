@@ -1,47 +1,83 @@
 ---
-import { getCollection, type CollectionEntry } from 'astro:content'
+import type { GetStaticPathsResult } from 'astro'
+import type { CollectionEntry, GetStaticPaths } from 'astro:content'
+import type { Language, PostMeta, ThemeConfig } from '@/types'
+import { getCollection } from 'astro:content'
+import { themeConfig } from '@/config/default'
+import { useTranslations } from '@/i18n'
 import LayoutDefault from '@/layouts/LayoutDefault.astro'
-import LayoutPost from '~/layouts/LayoutPost.astro'
 import Comments from '~/components/Comments.astro'
 import Pagination from '~/components/Pagination.astro'
 import SiteSeo from '~/components/SiteSeo.astro'
-import { themeConfig } from '@/config/default'
-import { t } from '@/i18n'
-
-export async function getStaticPaths() {
-  const posts = await getCollection('posts', ({ data }) => !data.draft)
-  return posts.map((post) => ({
-    params: { id: post.slug },
-    props: { post },
-  }))
-}
+import LayoutPost from '~/layouts/LayoutPost.astro'
 
 interface Props {
   post: CollectionEntry<'posts'>
+  content: string
 }
 
-const { post } = Astro.props
-const { Content } = await post.render()
+export async function getStaticPaths(): Promise<GetStaticPathsResult> {
+  const posts = await getCollection('posts', ({ data }) => !data.draft)
+  return posts.map(post => ({
+    params: { id: post.slug },
+    props: { 
+      post: post,
+      content: await post.render()
+    }
+  }))
+}
 
-const { site } = themeConfig
-const title = `${post.data.title} - ${site.title}`
-const description = post.data.description || site.description
+const { post, content } = Astro.props
+const { t } = useTranslations(Astro.locals.language as Language || 'en')
+
+const postMeta: PostMeta = {
+  id: post.id,
+  title: post.data.title,
+  publishDate: post.data.pubDate,
+  updatedDate: post.data.updatedDate,
+  description: post.data.description,
+  categories: post.data.categories,
+  tags: post.data.tags,
+  author: post.data.author,
+  draft: post.data.draft,
+  slug: post.slug,
+  collection: 'posts',
+  body: post.body,
+  data: post.data
+}
+
+const pageTitle = `${postMeta.title} - ${themeConfig.site.title}`
+const description = postMeta.description || themeConfig.site.description
 
 // Get previous and next posts
 const posts = await getCollection('posts', ({ data }) => !data.draft)
 const sortedPosts = posts.sort(
   (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf()
 )
-const currentIndex = sortedPosts.findIndex((p) => p.slug === post.slug)
+const currentIndex = sortedPosts.findIndex((p) => p.slug === postMeta.slug)
 const prevPost = currentIndex < sortedPosts.length - 1 ? sortedPosts[currentIndex + 1] : null
 const nextPost = currentIndex > 0 ? sortedPosts[currentIndex - 1] : null
 ---
 
-<LayoutDefault>
-  <SiteSeo slot="head" {title} {description} />
-  <LayoutPost post={post}>
-    <Content />
+<LayoutDefault
+  config={themeConfig}
+  title={pageTitle}
+  description={description}
+>
+  <SiteSeo slot="head" {pageTitle} {description} />
+  <LayoutPost post={postMeta}>
+    <div class="prose dark:prose-invert mx-auto">
+      <h1>{postMeta.title}</h1>
+      {postMeta.description && <p class="text-xl text-gray-500 dark:text-gray-400">{postMeta.description}</p>}
+      <div class="flex items-center space-x-4 text-gray-500">
+        <time datetime={postMeta.publishDate.toISOString()}>
+          {new Date(postMeta.publishDate).toLocaleDateString()}
+        </time>
+      </div>
+      <div class="mt-8" set:html={content} />
+    </div>
   </LayoutPost>
+  
   <div class="mt-8">
     <Comments />
   </div>

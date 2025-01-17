@@ -1,40 +1,33 @@
 ---
-import { themeConfig } from '~/.config'
-import LayoutDefault from '~/layouts/LayoutDefault.astro'
-import { getCategories, getPathFromCategory } from '~/utils/index'
+import type { Language } from '@/i18n'
+import { themeConfig } from '@/config/default'
+import LayoutDefault from '@/layouts/LayoutDefault.astro'
+import { t } from '@/i18n'
 
-const { translate: t } = Astro.locals
-const categoryMap = await getCategories()
+const { categoryMap } = themeConfig.site
+const categories = Array.isArray(categoryMap) ? categoryMap : []
 
-const list = getListFromMap(categoryMap)
-
-function getListFromMap(map: typeof categoryMap) {
-  return Array.from(map).map((entry) => {
-    const [key, value] = entry
-    return {
-      title: key,
-      href: `/categories/${getPathFromCategory(key, themeConfig.site.categoryMap)}`,
-      size: t('categories_count', value.length),
-    }
-  })
-}
+const locale = Astro.locals.language as Language
 ---
 
 <LayoutDefault>
-  <section>
-    <h2 class="post-title">{t('Categories')}</h2>
-    <ul class="pl-6" flex="~ col gap-4">
-      {
-        list.map((item: { title: string; href: string; size: string }) => (
-          <li>
-            <a href={item.href} class="not-underline-hover inline-flex items-center">
-              <span class="i-mdi-folder mr-2 h-6 w-6" />
-              <span>{item.title}</span>
-              <span class="ml-2 text-3">{item.size}</span>
-            </a>
-          </li>
-        ))
-      }
-    </ul>
-  </section>
+  <div class="container mx-auto px-4 py-8">
+    <h1 class="text-3xl font-bold mb-8">
+      {t('meta.categories', locale)}
+    </h1>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {categories.map((category) => (
+        <a
+          href={`/categories/${category.path}`}
+          class="block p-6 bg-white rounded-lg shadow hover:shadow-md transition-shadow duration-200"
+        >
+          <h2 class="text-xl font-semibold mb-2">{category.name}</h2>
+          <p class="text-gray-600">
+            {category.path}
+          </p>
+        </a>
+      ))}
+    </div>
+  </div>
 </LayoutDefault>

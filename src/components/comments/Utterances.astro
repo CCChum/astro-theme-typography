@@ -1,30 +1,43 @@
 ---
-import { themeConfig } from '@/config/default'
+import type { CommentConfig } from '@/types'
 
-const { comment } = themeConfig
-const { utterances } = comment
+interface Props {
+  config: CommentConfig['utterances']
+}
 
-// Only render if repo is configured
-const isEnabled = !!utterances?.repo
+const { config } = Astro.props
+
+if (!config) {
+  throw new Error('Utterances configuration is missing')
+}
+
+const utterancesConfig = {
+  repo: config.repo,
+  issueTerm: 'pathname',
+  label: 'comment',
+  theme: 'github-light'
+}
 ---
 
-{
-  isEnabled && (
-    <div class="utterances-frame">
+<div class="utterances">
+  {
+    config && (
       <script
+        is:inline
         src="https://utteranc.es/client.js"
-        data-repo={utterances.repo}
-        data-issue-term="pathname"
-        data-theme="preferred-color-scheme"
+        data-repo={utterancesConfig.repo}
+        data-issue-term={utterancesConfig.issueTerm}
+        data-label={utterancesConfig.label}
+        data-theme={utterancesConfig.theme}
         crossorigin="anonymous"
         async
       />
-    </div>
-  )
-}
+    )
+  }
+</div>
 
 <style>
-  .utterances-frame {
+  .utterances {
     @apply w-full;
   }
 </style>

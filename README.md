@@ -269,7 +269,4 @@ When deploying to production:
 
 ## TODO
 
-- [ ] WebSub
-- [x] comment
-- [ ] search
-- [ ] analytics
+- [ ] ...

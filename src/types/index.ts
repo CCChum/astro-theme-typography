@@ -1,40 +1,115 @@
-import type { CollectionEntry } from 'astro:content'
 import type { Session } from '@auth/core/types'
+import type { User } from '@auth/core'
+import type { AdapterUser } from '@auth/core/adapters'
+import type { AstroGlobal } from 'astro'
+import type { CollectionEntry } from 'astro:content'
 
-export interface SiteConfig {
-  title: string
+// 扩展 HTML 属性类型以支持 Tailwind/UnoCSS 类
+declare module 'astro' {
+  interface HTMLAttributes {
+    class?: string | null | undefined
+    translate?: '' | 'yes' | 'no' | null | undefined
+    flex?: boolean
+    lg?: boolean
+  }
+}
+
+// Language and i18n types
+export type Language = 'en' | 'zh' | 'ja'
+
+// Messages type for i18n
+export interface Messages {
+  'site.title': string
+  'site.description': string
+  'nav.home': string
+  'nav.blog': string
+  'nav.about': string
+  'post.readingTime': string
+  'pagination.prev': string
+  'pagination.next': string
+  'pagination.page': string
+  'pagination.of': string
+  'meta.categories': string
+  'meta.tags': string
+  'meta.previous': string
+  'meta.next': string
+  'categories.title': string
+  'categories.description': string
+  'categories.count': string
+  [key: string]: string // Allow string indexing
+}
+
+// Auth types
+export interface CustomUser extends Omit<AdapterUser, 'email'> {
+  id: string
+  name?: string | null
+  email?: string | null
+  image?: string | null
+  role?: 'admin' | 'user'
+}
+
+export interface CustomSession extends Session {
+  user?: CustomUser
+}
+
+// Theme config types
+export interface ThemeConfig {
   subtitle: string
-  description: string
   author: string
   website: string
-  language: string
   pageSize: number
-  socialLinks: SocialLink[]
-  navLinks: NavLink[]
-  categoryMap: CategoryMap[]
+  language?: Language
+  site: {
+    title: string
+    description: string
+  }
+  socialLinks: Array<{
+    name: string
+    href: string
+  }>
+  navLinks: Array<{
+    name: string
+    href: string
+  }>
+  categoryMap: Array<{
+    name: string
+    value: string
+  }>
   footer: string[]
+  appearance?: {
+    theme?: 'light' | 'dark' | 'system'
+    fontFamily?: string
+    locale?: Language
+    colorsLight?: {
+      primary: string
+      background: string
+    }
+    colorsDark?: {
+      primary: string
+      background: string
+    }
+    fonts?: {
+      header: string
+      ui: string
+    }
+  }
+  analytics?: AnalyticsConfig
+  comment?: CommentConfig
 }
 
-export interface AdminConfig {
-  username: string
-  password: string
+// Analytics config
+export interface AnalyticsConfig {
+  googleAnalyticsId?: string
+  umamiAnalyticsId?: string
+  google?: {
+    id: string
+  }
+  baidu?: {
+    id: string
+  }
 }
 
-export interface SocialLink {
-  name: string
-  href: string
-}
-
-export interface NavLink {
-  name: string
-  href: string
-}
-
-export interface CategoryMap {
-  name: string
-  value: string
-}
-
+// Comment system config
 export interface CommentConfig {
   disqus?: {
     shortname: string
@@ -45,7 +120,6 @@ export interface CommentConfig {
     category: string
     categoryId: string
     mapping: string
-    strict: boolean
     reactionsEnabled: boolean
     emitMetadata: boolean
     inputPosition: string
@@ -53,69 +127,116 @@ export interface CommentConfig {
   }
   utterances?: {
     repo: string
-    issueTerm: string
-    label: string
-    theme: string
   }
   twikoo?: {
     envId: string
-    region: string
+    region?: string
   }
 }
 
-export interface ThemeConfig {
-  site: SiteConfig
-  admin: AdminConfig
-  comment?: CommentConfig
-}
-
-export interface CustomSession extends Session {
-  user?: {
-    id: string
-    name?: string | null
-    email?: string | null
-    image?: string | null
-    password?: string
-  }
-}
-
-export interface Post {
-  id: string
+// Post metadata
+export interface PostMeta {
+  id?: string
   title: string
-  slug: string
   description?: string
-  pubDate: Date
+  publishDate: Date
   updatedDate?: Date
-  heroImage?: string
+  draft?: boolean
   categories?: string[]
   tags?: string[]
   author?: string
-  draft?: boolean
+  pin?: boolean
+  slug?: string
+  collection?: string
+  body?: string
+  data?: CollectionEntry<'posts'>['data']
 }
 
-export type PostEntry = CollectionEntry<'posts'>
-export type PostData = PostEntry['data']
+// Props interfaces for layouts
+export interface LayoutProps {
+  config: ThemeConfig
+  title?: string
+  description?: string
+}
 
-export interface PostMeta extends PostData {
-  id: string
-  slug: string
-  readingTime?: number
+export interface AdminLayoutProps extends LayoutProps {
+  requireAuth?: boolean
+}
+
+export interface PostLayoutProps extends LayoutProps {
+  post: PostMeta
+}
+
+// i18n helper type
+export interface I18nFunctions {
+  t: (key: keyof Messages) => string
+  translate: (key: keyof Messages, lang: Language) => string
+}
+
+export interface I18n {
+  t: (key: keyof Messages, params?: Record<string, string | number>) => string
+  locale: Language
+  messages: Record<Language, Messages>
+}
+
+// Pagination types
+export interface PaginationLink {
+  url: string
+  text?: string
+  srLabel?: string
 }
 
 export interface Pagination {
-  total: number
   currentPage: number
   lastPage: number
-  showNext: boolean
-  showPrev: boolean
   url: {
-    prev: string | null
-    next: string | null
+    current: string
+    prev?: string
+    next?: string
   }
 }
 
-export interface Category {
+export interface PaginationProps {
+  page: {
+    currentPage: number
+    size: number
+    total: number
+    lastPage: number
+    url: {
+      prev?: string
+      next?: string
+    }
+  }
+  locale?: Language
+}
+
+// Post
+export interface Post {
+  id: string
+  slug: string
+  body: string
+  collection: string
+  data: PostMeta
+}
+
+export interface PostEntry extends CollectionEntry<'posts'> {
+  data: PostMeta
+}
+
+export interface PostData {
+  post: PostEntry
+  prev?: PostEntry
+  next?: PostEntry
+}
+
+// Re-export CategoryMap type
+export interface CategoryMap {
   name: string
-  count: number
-  path: string
+  value: string
+}
+
+declare module 'astro' {
+  interface Locals {
+    t: (key: keyof Messages) => string
+  }
 }

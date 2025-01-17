@@ -1,5 +1,5 @@
 ---
-import type { PostMeta } from '@/types'
+import type { PostMeta, Language } from '@/types'
 import { useTranslations } from '@/i18n'
 import { themeConfig } from '@/config/default'
 
@@ -8,9 +8,9 @@ interface Props {
 }
 
 const { post } = Astro.props
-const t = useTranslations(Astro)
+const t = useTranslations(Astro.locals.language as Language || 'en')
 
-const date = new Date(post.date).toLocaleDateString(themeConfig.site.language, {
+const date = new Date(post.publishDate).toLocaleDateString(themeConfig.language || 'en', {
   year: 'numeric',
   month: 'long',
   day: 'numeric',
@@ -18,7 +18,7 @@ const date = new Date(post.date).toLocaleDateString(themeConfig.site.language, {
 ---
 
 <div class="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-gray-500 dark:text-gray-400">
-  <time datetime={post.date}>{date}</time>
+  <time datetime={post.publishDate.toISOString()}>{date}</time>
   {
     post.categories && (
       <div class="flex items-center gap-1">
@@ -33,14 +33,6 @@ const date = new Date(post.date).toLocaleDateString(themeConfig.site.language, {
             </a>
           ))}
         </div>
-      </div>
-    )
-  }
-  {
-    post.readingTime && (
-      <div class="flex items-center gap-1">
-        <span>·</span>
-        <span>{post.readingTime} {t('post.readingTime')}</span>
       </div>
     )
   }

@@ -1,53 +1,54 @@
 ---
-import { themeConfig } from '@/core/.config'
+import { themeConfig } from '@/config/default'
 import { SEO } from 'astro-seo'
+import type { TwitterCardType } from 'astro-seo'
 
 interface Props {
   title?: string
   description?: string
   image?: string
+  article?: boolean
   canonicalURL?: URL
 }
 
-const { title, description, image, canonicalURL } = Astro.props
-const { site } = themeConfig
+const { title, description, image, article, canonicalURL } = Astro.props
 
-const siteTitle = title ? `${title} | ${site.title}` : site.title
-const siteDescription = description || site.description
-const siteImage = image || '/og-image.png'
-const siteURL = canonicalURL || Astro.url
+const siteTitle = title
+  ? `${title} - ${themeConfig.site.title}`
+  : themeConfig.site.title
+
+const siteDescription = description || themeConfig.site.description
+
+const openGraph = {
+  basic: {
+    title: siteTitle,
+    type: article ? 'article' : 'website',
+    image: image || '/og-image.png',
+  },
+  optional: {
+    description: siteDescription,
+    siteName: themeConfig.site.title,
+  },
+  image: {
+    alt: siteTitle,
+  },
+}
+
+const twitter: {
+  card: TwitterCardType
+  site?: string
+  creator?: string
+} = {
+  card: image ? 'summary_large_image' : 'summary',
+  site: themeConfig.site.title,
+  creator: themeConfig.author,
+}
 ---
 
 <SEO
   title={siteTitle}
   description={siteDescription}
-  openGraph={{
-    basic: {
-      title: siteTitle,
-      type: 'website',
-      image: siteImage,
-    },
-    image: {
-      alt: siteTitle,
-    },
-    optional: {
-      description: siteDescription,
-      siteName: site.title,
-    },
-  }}
-  twitter={{
-    creator: site.author,
-    card: 'summary_large_image',
-  }}
-  extend={{
-    meta: [
-      { name: 'viewport', content: 'width=device-width, initial-scale=1' },
-      { name: 'generator', content: Astro.generator },
-    ],
-    link: [
-      { rel: 'icon', href: '/favicon.svg' },
-      { rel: 'sitemap', href: '/sitemap-index.xml' },
-      { rel: 'canonical', href: siteURL.href },
-    ],
-  }}
+  openGraph={openGraph}
+  twitter={twitter}
+  canonical={canonicalURL}
 />

@@ -1,0 +1,46 @@
+---
+import type { ThemeConfig } from '@/types'
+import { useTranslations } from '@/i18n'
+import type { Language } from '@/types'
+
+interface Props {
+  config: ThemeConfig
+}
+
+const { config } = Astro.props
+const t = useTranslations(Astro.locals.language as Language || 'en')
+---
+
+<header class="py-6">
+  <nav class="container mx-auto px-4">
+    <div class="flex items-center justify-between">
+      <a href="/" class="text-2xl font-bold">
+        {config.site.title}
+      </a>
+      
+      <div class="hidden md:flex space-x-6">
+        {config.navLinks.map(link => (
+          <a
+            href={link.href}
+            class="text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white"
+          >
+            {link.name}
+          </a>
+        ))}
+      </div>
+
+      <div class="flex items-center space-x-4">
+        {config.socialLinks.map(link => (
+          <a
+            href={link.href}
+            target="_blank"
+            rel="noopener noreferrer"
+            class="text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white"
+          >
+            {link.name}
+          </a>
+        ))}
+      </div>
+    </div>
+  </nav>
+</header>

@@ -1,16 +1,17 @@
+/// <reference path="../.astro/types.d.ts" />
 /// <reference types="astro/client" />
 /// <reference types="@astrojs/image/client" />
 
+declare namespace JSX {
+  interface IntrinsicElements {
+    [elemName: string]: any
+  }
+}
+
 interface ImportMetaEnv {
-  readonly ADMIN_USERNAME: string
-  readonly ADMIN_PASSWORD: string
+  readonly GITHUB_ID: string
+  readonly GITHUB_SECRET: string
   readonly AUTH_SECRET: string
-  readonly GISCUS_REPO: string
-  readonly GISCUS_REPO_ID: string
-  readonly GISCUS_CATEGORY: string
-  readonly GISCUS_CATEGORY_ID: string
-  readonly GOOGLE_ANALYTICS_ID?: string
-  readonly UMAMI_ANALYTICS_ID?: string
 }
 
 interface ImportMeta {

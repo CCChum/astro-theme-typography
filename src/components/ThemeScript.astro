@@ -1,36 +1,22 @@
 ---
-import { themeConfig } from '@/core/.config'
+import { themeConfig } from '@/config/default'
 
 const { appearance } = themeConfig
+const theme = appearance?.theme || 'system'
 ---
 
-<script is:inline define:vars={{ defaultTheme: appearance.theme }}>
-  function applyTheme() {
-    const theme = (() => {
-      if (typeof localStorage !== 'undefined' && localStorage.getItem('theme')) {
-        return localStorage.getItem('theme')
-      }
-      if (defaultTheme === 'system') {
-        return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
-      }
-      return defaultTheme
-    })()
-
-    if (theme === 'light') {
-      document.documentElement.classList.remove('dark')
-    } else {
+<script is:inline define:vars={{ theme }}>
+  function setTheme() {
+    const darkQuery = window.matchMedia('(prefers-color-scheme: dark)')
+    const theme = localStorage.getItem('theme') || 'system'
+    
+    if (theme === 'dark' || (theme === 'system' && darkQuery.matches)) {
       document.documentElement.classList.add('dark')
+    } else {
+      document.documentElement.classList.remove('dark')
     }
-
-    window.localStorage.setItem('theme', theme)
   }
 
-  applyTheme()
-
-  // Watch for system theme changes
-  if (defaultTheme === 'system') {
-    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', applyTheme)
-  }
-
-  document.addEventListener('astro:after-swap', applyTheme)
+  setTheme()
+  window.addEventListener('storage', setTheme)
 </script>

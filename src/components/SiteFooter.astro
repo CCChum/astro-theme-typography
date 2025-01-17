@@ -1,19 +1,27 @@
 ---
-import { themeConfig } from '@/core/.config'
+import { themeConfig } from '@/config/default'
 
-const { site } = themeConfig
+const { site, footer, author, website } = themeConfig
 const year = new Date().getFullYear()
 
-const footerText = site.footer.map((text) =>
-  text
-    .replace('%year', year.toString())
-    .replace('%author', site.author)
-    .replace('%website', site.website)
-)
+const renderText = (text: string) => {
+  return text.replace('❤️', `<span class="text-red-500">❤️</span>`)
+}
 ---
 
-<footer class="border-t border-gray-200 py-8 dark:border-gray-700">
-  <div class="text-center text-sm text-gray-500 dark:text-gray-400">
-    {footerText.map((text) => <p set:html={text} />)}
+<footer class="text-sm leading-[1.75] mt-4">
+  <div>
+    {footer.map((text) => (
+      <div set:html={renderText(text)} />
+    ))}
+  </div>
+
+  <div class="mt-2">
+    {footer.map((text) =>
+      text
+        .replace('%year', year.toString())
+        .replace('%author', author)
+        .replace('%website', website)
+    )}
   </div>
 </footer>

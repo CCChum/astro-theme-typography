@@ -1,36 +1,47 @@
 ---
+import type { GetStaticPaths, Page } from 'astro'
+import type { CollectionEntry } from 'astro:content'
+import type { Language } from '@/types'
 import { getCollection } from 'astro:content'
-import LayoutDefault from '@/layouts/LayoutDefault.astro'
+import { themeConfig } from '@/config/default'
+import { useTranslations } from '@/i18n'
+import BaseLayout from '@/layouts/BaseLayout.astro'
 import PostList from '@/components/PostList.astro'
 import Pagination from '@/components/Pagination.astro'
-import type { Post } from '@/types'
 
-export async function getStaticPaths({ paginate }) {
-  const posts = await getCollection('posts', ({ data }) => {
-    return !data.draft
-  })
+interface Props {
+  page: Page<CollectionEntry<'posts'>>
+}
 
-  posts.sort((a, b) => {
-    if (a.data.pin && !b.data.pin) return -1
-    if (!a.data.pin && b.data.pin) return 1
-    return b.data.pubDate.valueOf() - a.data.pubDate.valueOf()
-  })
+export const getStaticPaths: GetStaticPaths = async ({ paginate }) => {
+  const posts = await getCollection('posts')
+  const publishedPosts = posts
+    .filter((post) => !post.data.draft)
+    .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
 
-  return paginate(posts, { pageSize: 10 })
+  return paginate(publishedPosts, { pageSize: themeConfig.pageSize })
 }
 
 const { page } = Astro.props
-const { data: posts, currentPage, lastPage, url } = page
+const t = useTranslations((Astro.locals.language as Language) || 'en')
+
+const { currentPage, lastPage } = page
+const { prev: prevUrl, next: nextUrl } = page.url
 ---
 
-<LayoutDefault>
-  <div class="mx-auto max-w-3xl px-4">
-    <PostList posts={posts} />
+<BaseLayout
+  config={themeConfig}
+  title={t('site.title')}
+  description={t('site.description')}
+>
+  <div class="container mx-auto px-4 py-8">
+    <PostList posts={page.data} />
+    
     <Pagination
       currentPage={currentPage}
       lastPage={lastPage}
-      prevUrl={url.prev}
-      nextUrl={url.next}
+      prevUrl={prevUrl}
+      nextUrl={nextUrl}
     />
   </div>
-</LayoutDefault>
+</BaseLayout>

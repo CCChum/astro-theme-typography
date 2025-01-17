@@ -1,29 +1,39 @@
 ---
-import { themeConfig } from '@/config/default'
+import type { CommentConfig } from '@/types'
 
-const { comment } = themeConfig
-const { twikoo } = comment
+interface Props {
+  config: CommentConfig['twikoo']
+}
 
-// Only render if envId is configured
-const isEnabled = !!twikoo?.envId
+const { config } = Astro.props
+
+if (!config?.envId) {
+  throw new Error('Twikoo envId is required')
+}
+
+const twikooConfig = {
+  envId: config.envId,
+  region: config.region,
+}
 ---
 
-{
-  isEnabled && (
-    <div id="twikoo" class="mt-10">
-      <script
-        src="https://cdn.jsdelivr.net/npm/twikoo@1.6.31/dist/twikoo.all.min.js"
-        define:vars={{ envId: twikoo.envId }}
-      >
-        window.twikooConfig = {
-          envId: envId,
-          el: '#twikoo',
-        }
-        twikoo.init(window.twikooConfig)
-      </script>
-    </div>
-  )
-}
+<div id="twikoo" class="mt-10"></div>
+
+<script define:vars={{ twikooConfig }}>
+  window.twikooConfig = twikooConfig;
+  (function loadTwikoo() {
+    var script = document.createElement('script');
+    script.src = 'https://cdn.jsdelivr.net/npm/twikoo@latest';
+    script.onload = function() {
+      window.twikoo?.init({
+        envId: twikooConfig.envId,
+        region: twikooConfig.region,
+        el: '#twikoo',
+      });
+    };
+    document.head.appendChild(script);
+  })();
+</script>
 
 <style>
   #twikoo {

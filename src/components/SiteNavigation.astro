@@ -1,22 +1,33 @@
 ---
-import { themeConfig } from '@/config/default'
+import type { ThemeConfig } from '@/types'
 import { useTranslations } from '@/i18n'
+import type { Language } from '@/types'
+import type { HTMLAttributes } from 'astro/types'
 
-const t = useTranslations(Astro)
-const { navLinks } = themeConfig
+interface Props extends HTMLAttributes<'nav'> {
+  config: ThemeConfig
+}
+
+const { config, class: className, ...props } = Astro.props as Props
+const { t } = useTranslations(Astro.locals.language as Language || 'en')
+
 ---
 
-<nav class="flex items-center justify-between">
-  <div class="flex items-center space-x-4">
-    {
-      navLinks.map(({ name, href }) => (
-        <a
-          href={href}
-          class="text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-gray-100"
-        >
-          {t(`nav.${name.toLowerCase()}`)}
-        </a>
-      ))
-    }
+<nav class:list={['flex items-center', className]} {...props}>
+  <div class="flex-1">
+    <ul class="flex space-x-4">
+      {
+        config.navLinks.map(({ name, href }) => (
+          <li>
+            <a
+              href={href}
+              class="text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100"
+            >
+              {t(`nav.${name.toLowerCase()}`)}
+            </a>
+          </li>
+        ))
+      }
+    </ul>
   </div>
 </nav>

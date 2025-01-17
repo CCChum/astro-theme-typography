@@ -1,48 +1,44 @@
 ---
-import type { Page } from 'astro'
-import { LANGUAGES } from '~/i18n'
+import type { Language } from '@/types'
+import { useTranslations } from '@/i18n'
 
 interface Props {
-  page: Page
-  locale?: keyof typeof LANGUAGES
+  currentPage: number
+  lastPage: number
+  prevUrl?: string
+  nextUrl?: string
 }
 
-const { page, locale = 'en' } = Astro.props
-const t = LANGUAGES[locale]
-
-const totalPages = Math.ceil(page.size / page.size)
-const pages = Array.from({ length: totalPages }, (_, i) => i + 1)
+const { currentPage, lastPage, prevUrl, nextUrl } = Astro.props
+const { t } = useTranslations(Astro.locals.language as Language || 'en')
 ---
 
-<nav class="mt-8 flex items-center justify-center space-x-4" aria-label="Pagination">
-  {
-    page.url.prev && (
-      <a href={page.url.prev} class="not-underline-hover">
-        {t.prev}
-      </a>
-    )
-  }
-
-  <div class="flex items-center space-x-2">
-    {pages.map((p) => (
+<nav class="flex items-center justify-between mt-8">
+  <div class="flex-1 flex justify-start">
+    {prevUrl && (
       <a
-        href={p === 1 ? '/' : `/page/${p}`}
-        class:list={[
-          'px-3 py-1 rounded',
-          { 'bg-gray-900 text-white dark:bg-gray-100 dark:text-gray-900': p === page.currentPage },
-          'not-underline-hover',
-        ]}
+        href={prevUrl}
+        class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
       >
-        {p}
+        {t('pagination.prev')}
       </a>
-    ))}
+    )}
   </div>
 
-  {
-    page.url.next && (
-      <a href={page.url.next} class="not-underline-hover">
-        {t.next}
+  <div class="hidden md:flex justify-center">
+    <span class="text-sm text-gray-700">
+      {t('pagination.page')} {currentPage} {t('pagination.of')} {lastPage}
+    </span>
+  </div>
+
+  <div class="flex-1 flex justify-end">
+    {nextUrl && (
+      <a
+        href={nextUrl}
+        class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+      >
+        {t('pagination.next')}
       </a>
-    )
-  }
+    )}
+  </div>
 </nav>

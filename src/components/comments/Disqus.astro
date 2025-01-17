@@ -1,43 +1,44 @@
 ---
-import { themeConfig } from '@/core/.config'
-
 interface Props {
-  url?: string
-  title?: string
-  id?: string
+  config: {
+    shortname: string;
+    url?: string;
+    identifier?: string;
+    title?: string;
+  };
 }
 
-const { url, title, id } = Astro.props
-const { comment } = themeConfig
-const { disqus } = comment
+const { config } = Astro.props;
+
+if (!config?.shortname) {
+  throw new Error('Disqus shortname is required');
+}
 
 const disqusConfig = {
-  url: url || Astro.url.href,
-  identifier: id || url,
-  title: title,
-}
+  shortname: config.shortname,
+  url: config.url || Astro.url.href,
+  identifier: config.identifier || Astro.url.pathname,
+  title: config.title || document.title
+};
 ---
 
 {
-  disqus?.shortname && (
-    <div id="disqus_thread">
-      <script define:vars={{ disqusConfig, shortname: disqus.shortname }}>
-        window.disqus_config = function() {
-          this.page.url = disqusConfig.url;
-          this.page.identifier = disqusConfig.identifier;
-          this.page.title = disqusConfig.title;
-        };
-        
-        (function() {
-          var d = document, s = d.createElement('script');
-          s.src = 'https://' + disqus.shortname + '.disqus.com/embed.js';
-          s.setAttribute('data-timestamp', +new Date());
-          (d.head || d.body).appendChild(s);
-        })();
-      </script>
-      <noscript>
-        Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a>
-      </noscript>
-    </div>
+  config?.shortname && (
+    <div id="disqus_thread"></div>
+
+    <script define:vars={{ disqusConfig }}>
+      window.disqus_config = function() {
+        this.page.url = disqusConfig.url;
+        this.page.identifier = disqusConfig.identifier;
+        this.page.title = disqusConfig.title;
+      };
+
+      (function() {
+        var d = document, s = d.createElement('script');
+        s.src = `https://${disqusConfig.shortname}.disqus.com/embed.js`;
+        s.setAttribute('data-timestamp', String(+new Date()));
+        (d.head || d.body).appendChild(s);
+      })();
+    </script>
   )
 }

@@ -1,36 +1,42 @@
 ---
-import { getCollection } from 'astro:content'
-import LayoutDefault from '@/layouts/LayoutDefault.astro'
-import { translate } from '@/i18n'
+import type { Language, ThemeConfig } from '@/types'
+import { themeConfig } from '@/config/default'
+import { useTranslations } from '@/i18n'
+import BaseLayout from '@/layouts/BaseLayout.astro'
 
-const posts = await getCollection('posts')
-const categories = posts.reduce((acc: Record<string, number>, post) => {
-  const categories = post.data.categories || []
-  categories.forEach(category => {
-    acc[category] = (acc[category] || 0) + 1
-  })
-  return acc
-}, {})
+interface Props {
+  config: ThemeConfig
+}
 
-const sortedCategories = Object.entries(categories)
-  .sort(([, a], [, b]) => b - a)
+const { t } = useTranslations(Astro.locals.language as Language || 'en')
+const categories = themeConfig.categoryMap || []
+
+// Sort categories by name
+const sortedCategories = [...categories].sort((a, b) => 
+  a.name.localeCompare(b.name)
+)
 ---
 
-<LayoutDefault title={translate('category.title')}>
-  <div class="mx-auto max-w-3xl px-4 space-y-8">
-    <h1 class="mb-8 text-2xl font-bold">{translate('category.title')}</h1>
-    <ul class="flex flex-wrap gap-4">
-      {sortedCategories.map(([category, count]) => (
-        <li>
-          <a
-            href={`/categories/${category}`}
-            class="inline-block px-4 py-2 bg-gray-100 dark:bg-gray-800 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700"
-          >
-            {category}
-            <span class="ml-2 text-sm text-gray-500">({count})</span>
-          </a>
-        </li>
+<BaseLayout
+  config={themeConfig}
+  title={t('categories.title')}
+  description={t('categories.description')}
+>
+  <div class="container mx-auto px-4 py-8">
+    <h1 class="text-3xl font-bold mb-8">{t('categories.title')}</h1>
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {sortedCategories.map(category => (
+        <a
+          href={`/categories/${category.value}`}
+          class="p-6 bg-white dark:bg-gray-800 rounded-lg shadow hover:shadow-lg transition-shadow"
+        >
+          <h2 class="text-xl font-semibold mb-2">{category.name}</h2>
+          <p class="text-gray-600 dark:text-gray-400">
+            {t('categories.count', { count: 0 })}
+          </p>
+        </a>
       ))}
-    </ul>
+    </div>
   </div>
-</LayoutDefault>
+</BaseLayout>
