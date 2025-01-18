@@ -27,12 +27,16 @@ const t = useTranslations((Astro.locals.language as Language) || 'en')
 
 const { currentPage, lastPage } = page
 const { prev: prevUrl, next: nextUrl } = page.url
+
+const title = t('site.title')
+const description = t('site.description')
+
 ---
 
 <BaseLayout
   config={themeConfig}
-  title={t('site.title')}
-  description={t('site.description')}
+  title={title}
+  description={description}
 >
   <div class="container mx-auto px-4 py-8">
     <PostList posts={page.data} />

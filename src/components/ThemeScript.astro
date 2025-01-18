@@ -1,22 +1,29 @@
 ---
-import { themeConfig } from '@/config/default'
+import { themeConfig } from "@/config";
 
-const { appearance } = themeConfig
-const theme = appearance?.theme || 'system'
+const defaultTheme = themeConfig.appearance?.theme || 'light';
 ---
 
-<script is:inline define:vars={{ theme }}>
-  function setTheme() {
-    const darkQuery = window.matchMedia('(prefers-color-scheme: dark)')
-    const theme = localStorage.getItem('theme') || 'system'
-    
-    if (theme === 'dark' || (theme === 'system' && darkQuery.matches)) {
-      document.documentElement.classList.add('dark')
-    } else {
-      document.documentElement.classList.remove('dark')
+<script is:inline define:vars={{ defaultTheme }}>
+  function getThemePreference() {
+    if (typeof localStorage !== 'undefined' && localStorage.getItem('theme')) {
+      return localStorage.getItem('theme');
     }
+    return window.matchMedia('(prefers-color-scheme: dark)').matches
+      ? 'dark'
+      : defaultTheme;
   }
 
-  setTheme()
-  window.addEventListener('storage', setTheme)
+  function setTheme(theme) {
+    document.documentElement.dataset.theme = theme;
+    localStorage.setItem('theme', theme);
+  }
+
+  setTheme(getThemePreference());
+
+  window.addEventListener('storage', (e) => {
+    if (e.key === 'theme') {
+      setTheme(e.newValue || defaultTheme);
+    }
+  });
 </script>

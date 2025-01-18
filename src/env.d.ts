@@ -8,10 +8,18 @@ declare namespace JSX {
   }
 }
 
+declare module '*.astro' {
+  import type { AstroComponentFactory } from 'astro/runtime/server/index.js'
+  const Component: AstroComponentFactory
+  export default Component
+}
+
 interface ImportMetaEnv {
-  readonly GITHUB_ID: string
-  readonly GITHUB_SECRET: string
   readonly AUTH_SECRET: string
+  readonly PUBLIC_GISCUS_REPO: string
+  readonly PUBLIC_GISCUS_REPO_ID: string
+  readonly PUBLIC_GISCUS_CATEGORY: string
+  readonly PUBLIC_GISCUS_CATEGORY_ID: string
 }
 
 interface ImportMeta {

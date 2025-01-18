@@ -1,38 +1,86 @@
 ---
-import type { PostMeta, Language } from '@/types'
+import { formatDate } from '@/utils/date'
 import { useTranslations } from '@/i18n'
-import { themeConfig } from '@/config/default'
 
 interface Props {
-  post: PostMeta
+  post: CollectionEntry<'posts'>
 }
 
 const { post } = Astro.props
-const t = useTranslations(Astro.locals.language as Language || 'en')
+const { language } = Astro.locals
+const { t } = useTranslations(language || 'en')
 
-const date = new Date(post.publishDate).toLocaleDateString(themeConfig.language || 'en', {
-  year: 'numeric',
-  month: 'long',
-  day: 'numeric',
-})
+const {
+  pubDate,
+  updatedDate,
+  author,
+  avatar,
+  readingTime,
+  categories = post.data.categories || [],
+  tags = post.data.tags || []
+} = { 
+  pubDate: post.data.pubDate,
+  updatedDate: post.data.updatedDate,
+  author: undefined,
+  avatar: undefined,
+  readingTime: Math.ceil(post.body.split(/\s+/).length / 200),
+  categories: post.data.categories,
+  tags: post.data.tags
+}
+
 ---
 
-<div class="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-gray-500 dark:text-gray-400">
-  <time datetime={post.publishDate.toISOString()}>{date}</time>
+<div class="flex flex-wrap items-center gap-4 text-sm text-gray-500">
   {
-    post.categories && (
-      <div class="flex items-center gap-1">
-        <span>·</span>
-        <div class="flex flex-wrap items-center gap-2">
-          {post.categories.map((category) => (
-            <a
-              href={`/categories/${category}`}
-              class="hover:text-gray-700 dark:hover:text-gray-300"
-            >
-              {category}
-            </a>
-          ))}
-        </div>
+    author && (
+      <div class="flex items-center gap-2">
+        {avatar && (
+          <img
+            src={avatar}
+            alt={author}
+            class="h-8 w-8 rounded-full"
+          />
+        )}
+        <span>{author}</span>
+      </div>
+    )
+  }
+  <time datetime={pubDate.toISOString()}>
+    {formatDate(pubDate, language || 'en')}
+  </time>
+  {
+    updatedDate && (
+      <time datetime={updatedDate.toISOString()} class="text-gray-400">
+        Updated {formatDate(updatedDate, language || 'en')}
+      </time>
+    )
+  }
+  {readingTime && <span>{readingTime} min read</span>}
+  {
+    categories.length > 0 && (
+      <div class="flex flex-wrap gap-2">
+        {categories.map((category) => (
+          <a
+            href={`/categories/${category}`}
+            class="rounded-full bg-gray-100 px-3 py-1 text-xs hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700"
+          >
+            {category}
+          </a>
+        ))}
+      </div>
+    )
+  }
+  {
+    tags.length > 0 && (
+      <div class="flex flex-wrap gap-2">
+        {tags.map((tag) => (
+          <a
+            href={`/tags/${tag}`}
+            class="text-xs hover:text-gray-700 dark:hover:text-gray-300"
+          >
+            #{tag}
+          </a>
+        ))}
       </div>
     )
   }

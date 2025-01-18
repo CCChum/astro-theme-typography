@@ -1,38 +1,36 @@
 ---
-import type { AdminLayoutProps } from '@/types'
+import type { Language } from '@/types'
+import { themeConfig } from '@/config'
 import BaseHead from '@/components/BaseHead.astro'
 import Header from '@/components/Header.astro'
 import Footer from '@/components/Footer.astro'
-import ThemeProvider from '@/components/ThemeProvider.astro'
-import { useTranslations } from '@/i18n'
+import { t } from '@/i18n'
 
-interface Props extends AdminLayoutProps {
+interface Props {
+  title?: string
+  description?: string
   requireAuth?: boolean
 }
 
-const { config, title, description, requireAuth = true } = Astro.props
-const t = useTranslations(Astro.locals.language || 'en')
+const { title, description, requireAuth = true } = Astro.props
+const locale = (Astro.locals.locale || 'en') as Language
 
-// Check authentication if required
-if (requireAuth) {
-  const session = await Astro.locals.auth()
-  if (!session?.user) {
-    return Astro.redirect('/auth/login')
-  }
-  if (session.user.role !== 'admin') {
-    return Astro.redirect('/')
-  }
+// Check auth status
+const isAuthenticated = Astro.locals.session?.user?.role === 'admin'
+
+if (requireAuth && !isAuthenticated) {
+  return Astro.redirect('/admin/login')
 }
+
 ---
 
 <!DOCTYPE html>
-<html lang={config.language}>
+<html lang={themeConfig.language}>
   <head>
     <BaseHead title={title} description={description} />
   </head>
-  <body class="min-h-screen flex flex-col bg-white dark:bg-gray-900">
-    <ThemeProvider />
-    <Header config={config} />
+  <body class="flex min-h-screen flex-col bg-gray-50">
+    <Header config={themeConfig} />
     
     <main class="flex-1 py-8">
       <div class="container mx-auto px-4">
@@ -69,7 +67,7 @@ if (requireAuth) {
       </div>
     </main>
 
-    <Footer config={config} />
+    <Footer config={themeConfig} />
   </body>
 </html>
 

@@ -1,167 +1,37 @@
 ---
-import type { GetStaticPathsResult } from 'astro'
-import type { CollectionEntry } from 'astro:content'
-import type { Language, PostMeta, ThemeConfig } from '@/types'
-import { getCollection } from 'astro:content'
-import { themeConfig } from '@/config/default'
-import { useTranslations } from '@/i18n'
-import LayoutDefault from '@/layouts/LayoutDefault.astro'
-import Comments from '@/components/Comments.astro'
-import Pagination from '@/components/Pagination.astro'
-import SiteSeo from '@/components/SiteSeo.astro'
+import { getCollection, type CollectionEntry } from 'astro:content'
 import LayoutPost from '@/layouts/LayoutPost.astro'
+import type { Post } from '@/types'
+
+export async function getStaticPaths() {
+  const posts = await getCollection('posts')
+  const sortedPosts = posts
+    .filter((post) => !post.data.draft)
+    .sort((a, b) => b.data.pubDate.getTime() - a.data.pubDate.getTime())
+
+  return sortedPosts.map((post, index) => ({
+    params: { id: post.slug },
+    props: {
+      post,
+      prev: index > 0 ? sortedPosts[index - 1] : null,
+      next: index < sortedPosts.length - 1 ? sortedPosts[index + 1] : null,
+    },
+  }))
+}
 
 interface Props {
   post: CollectionEntry<'posts'>
-  content: any
-  prevPost: CollectionEntry<'posts'> | undefined
-  nextPost: CollectionEntry<'posts'> | undefined
-  config: ThemeConfig
+  prev: CollectionEntry<'posts'> | null
+  next: CollectionEntry<'posts'> | null
 }
 
-export async function getStaticPaths(): Promise<GetStaticPathsResult> {
-  const posts = await getCollection('posts', ({ data }) => !data.draft)
-  const sortedPosts = posts.sort(
-    (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf()
-  )
-  
-  return Promise.all(
-    posts.map(async (post) => {
-      const currentIndex = sortedPosts.findIndex((p) => p.slug === post.slug)
-      const prevPost = currentIndex < sortedPosts.length - 1 ? sortedPosts[currentIndex + 1] : undefined
-      const nextPost = currentIndex > 0 ? sortedPosts[currentIndex - 1] : undefined
-      
-      const rendered = await post.render()
-      return {
-        params: { id: post.slug },
-        props: { 
-          post: post,
-          content: rendered.Content,
-          prevPost,
-          nextPost,
-          config: themeConfig
-        }
-      }
-    })
-  )
-}
+const { post, prev, next } = Astro.props as Props
+const { Content } = await post.render()
 
-const { post, content: Content, prevPost, nextPost, config } = Astro.props
-const { t } = useTranslations(Astro.locals.language as Language || 'en')
-
-const postMeta = {
-  id: post.id,
-  title: post.data.title,
-  publishDate: post.data.pubDate,
-  updatedDate: post.data.updatedDate,
-  description: post.data.description,
-  categories: post.data.categories,
-  tags: post.data.tags,
-  author: post.data.author,
-  draft: post.data.draft,
-  slug: post.slug,
-  collection: 'posts',
-  body: post.body,
-  data: post.data
-} as const
-
-const pageTitle = `${postMeta.title} - ${config.site.title}`
-const description = postMeta.description || config.site.description
 ---
 
-<LayoutDefault
-  title={pageTitle}
-  description={description}
-  seo={{
-    type: 'article',
-    title: pageTitle,
-    description: description
-  }}
->
-  <LayoutPost 
-    post={post} 
-    config={config}
-    prev={prevPost}
-    next={nextPost}
-  >
-    <div class="prose dark:prose-invert mx-auto">
-      <h1>{postMeta.title}</h1>
-      {postMeta.description && (
-        <p class="text-xl text-gray-500 dark:text-gray-400">
-          {postMeta.description}
-        </p>
-      )}
-      <div class="flex items-center space-x-4 text-gray-500">
-        <time datetime={postMeta.publishDate.toISOString()}>
-          {new Date(postMeta.publishDate).toLocaleDateString()}
-        </time>
-      </div>
-      <div class="mt-8">
-        <Content />
-      </div>
-    </div>
-  </LayoutPost>
-  
-  {config.comment && (
-    <div class="mt-8">
-      <Comments config={config.comment} url={Astro.url.href} title={pageTitle} id={post.id} />
-    </div>
-  )}
-</LayoutDefault>
-
-<script>
-  const codeBlocks = Array.from(document.querySelectorAll('pre'))
-  const icon = "<div class='i-mdi-content-copy icon text-white'></div>"
-  const checkIcon = "<div class='i-mdi-check icon text-white'></div>"
-
-  for (const codeBlock of codeBlocks) {
-    const wrapper = document.createElement('div')
-    wrapper.className = 'code-container'
-
-    const copyButton = document.createElement('button')
-    const code = codeBlock.querySelector('code')
-    copyButton.className = 'clipboard-copy'
-    copyButton.innerHTML = icon
-
-    copyButton.addEventListener('click', async () => {
-      try {
-        await navigator.clipboard.writeText(code?.textContent ?? '')
-        copyButton.innerHTML = checkIcon
-        setTimeout(() => {
-          copyButton.innerHTML = icon
-        }, 1500)
-      } catch (err) {
-        console.error('Failed to copy text:', err)
-      }
-    })
-
-    codeBlock.appendChild(copyButton)
-    codeBlock.parentNode?.insertBefore(wrapper, codeBlock)
-    wrapper.appendChild(codeBlock)
-  }
-</script>
-
-<style is:global>
-  .code-container {
-    position: relative;
-  }
-  .clipboard-copy {
-    position: absolute;
-    top: 0.5rem;
-    right: 0.5rem;
-    width: 1.75rem;
-    height: 1.75rem;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    border-radius: 0.25rem;
-    background: transparent;
-    border: none;
-    cursor: pointer;
-    padding: 0;
-  }
-
-  .clipboard-copy:hover {
-    background-color: #30363d;
-  }
-</style>
+<LayoutPost post={post} prev={prev} next={next}>
+  <div class="prose prose-lg dark:prose-invert mx-auto">
+    <Content />
+  </div>
+</LayoutPost>

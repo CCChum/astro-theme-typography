@@ -1,42 +1,41 @@
 ---
-import type { Language, ThemeConfig } from '@/types'
-import { themeConfig } from '@/config/default'
-import { useTranslations } from '@/i18n'
-import BaseLayout from '@/layouts/BaseLayout.astro'
+import { getCollection } from 'astro:content'
+import LayoutDefault from '@/layouts/LayoutDefault.astro'
+import { themeConfig } from '@/config'
 
-interface Props {
-  config: ThemeConfig
-}
+const posts = await getCollection('posts')
+const categories = new Set()
 
-const { t } = useTranslations(Astro.locals.language as Language || 'en')
-const categories = themeConfig.categoryMap || []
+posts.forEach((post) => {
+  post.data.categories?.forEach((category) => {
+    categories.add(category)
+  })
+})
 
-// Sort categories by name
-const sortedCategories = [...categories].sort((a, b) => 
-  a.name.localeCompare(b.name)
-)
+const sortedCategories = Array.from(categories).sort()
 ---
 
-<BaseLayout
-  config={themeConfig}
-  title={t('categories.title')}
-  description={t('categories.description')}
->
-  <div class="container mx-auto px-4 py-8">
-    <h1 class="text-3xl font-bold mb-8">{t('categories.title')}</h1>
-    
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      {sortedCategories.map(category => (
-        <a
-          href={`/categories/${category.value}`}
-          class="p-6 bg-white dark:bg-gray-800 rounded-lg shadow hover:shadow-lg transition-shadow"
-        >
-          <h2 class="text-xl font-semibold mb-2">{category.name}</h2>
-          <p class="text-gray-600 dark:text-gray-400">
-            {t('categories.count', { count: 0 })}
-          </p>
-        </a>
-      ))}
+<LayoutDefault title="Categories" config={themeConfig}>
+  <div class="container mx-auto max-w-3xl px-4">
+    <h1 class="mb-8 text-3xl font-bold">Categories</h1>
+    <div class="flex flex-wrap gap-4">
+      {
+        sortedCategories.map((category) => {
+          const count = posts.filter((post) =>
+            post.data.categories?.includes(category)
+          ).length
+          const displayName = themeConfig.categoryMap[category] || category
+
+          return (
+            <a
+              href={`/categories/${category}`}
+              class="rounded-lg border px-4 py-2 hover:border-primary hover:text-primary"
+            >
+              {displayName} ({count})
+            </a>
+          )
+        })
+      }
     </div>
   </div>
-</BaseLayout>
+</LayoutDefault>

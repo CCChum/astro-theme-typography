@@ -1,35 +1,41 @@
 ---
-import type { CommentConfig } from '@/types'
+import type { GiscusConfig } from '@/types'
 
-interface Props {
-  config: CommentConfig['giscus']
-  url?: string
-  title?: string
-  id?: string
-}
+type Props = GiscusConfig
 
-const { config, url, title, id } = Astro.props
+const {
+  repo,
+  repoId,
+  category,
+  categoryId,
+  mapping = 'pathname',
+  reactionsEnabled = true,
+  emitMetadata = false,
+  inputPosition = 'top',
+  lang = 'en',
+  loading = 'lazy'
+} = Astro.props
 ---
 
 {
-  config && (
+  repo && (
     <div class="giscus mt-10">
       <script
         src="https://giscus.app/client.js"
-        data-repo={config.repo}
-        data-repo-id={config.repoId}
-        data-category={config.category}
-        data-category-id={config.categoryId}
-        data-mapping="pathname"
-        data-strict="0"
-        data-reactions-enabled="1"
-        data-emit-metadata="0"
-        data-input-position="bottom"
-        data-lang="en"
-        data-theme="light"
+        data-repo={repo}
+        data-repo-id={repoId}
+        data-category={category}
+        data-category-id={categoryId}
+        data-mapping={mapping}
+        data-reactions-enabled={reactionsEnabled.toString()}
+        data-emit-metadata={emitMetadata.toString()}
+        data-input-position={inputPosition}
+        data-lang={lang}
+        data-loading={loading}
         crossorigin="anonymous"
         async
-      ></script>
+      >
+      </script>
     </div>
   )
 }

@@ -1,63 +1,41 @@
 ---
 import type { GetStaticPaths } from 'astro'
-import type { CollectionEntry } from 'astro:content'
-import type { Language, PostMeta } from '@/types'
+import type { Post } from '@/types'
 import { getCollection } from 'astro:content'
-import { themeConfig } from '@/config/default'
 import { useTranslations } from '@/i18n'
-import BaseLayout from '@/layouts/BaseLayout.astro'
+import { themeConfig } from '@/config'
+import Layout from '@/layouts/Layout.astro'
 import PostList from '@/components/PostList.astro'
 
-export const getStaticPaths: GetStaticPaths = async () => {
+export const getStaticPaths = (async () => {
   const posts = await getCollection('posts')
-  const categories = [...new Set(posts.flatMap(post => post.data.categories || []))]
+  const categories = new Set<string>()
   
-  return categories.map(category => {
-    const filteredPosts = posts.filter(post => 
-      post.data.categories?.includes(category)
-    )
-    return {
-      params: { category },
-      props: { category, posts: filteredPosts }
-    }
+  posts.forEach(post => {
+    post.data.categories?.forEach(category => categories.add(category))
   })
-}
 
-interface Props {
-  category: string
-  posts: CollectionEntry<'posts'>[]
-}
+  return Array.from(categories).map(category => ({
+    params: { category },
+    props: { 
+      posts: posts.filter(post => post.data.categories?.includes(category)),
+      category 
+    }
+  }))
+}) satisfies GetStaticPaths
 
-const { category, posts } = Astro.props
-const { t } = useTranslations(Astro.locals.language as Language || 'en')
+const { posts, category } = Astro.props
+const { language } = Astro.locals
+const { t } = useTranslations(language || 'en')
 
-const postMetas: PostMeta[] = posts.map(post => ({
-  id: post.id,
-  title: post.data.title,
-  publishDate: post.data.pubDate,
-  updatedDate: post.data.updatedDate,
-  description: post.data.description,
-  categories: post.data.categories,
-  tags: post.data.tags,
-  author: post.data.author,
-  draft: post.data.draft,
-  slug: post.slug,
-  collection: 'posts',
-  body: post.body,
-  data: post.data
-}))
+const displayName = themeConfig.site.categoryMap.find(cat => cat.value === category)?.name || category
+const title = t('categories.title')
+const description = t('categories.description')
 ---
 
-<BaseLayout
-  config={themeConfig}
-  title={`${t('meta.categories')}: ${category}`}
-  description={`${t('meta.categories')} - ${category}`}
->
-  <div class="container mx-auto px-4 py-8">
-    <h1 class="text-3xl font-bold mb-8">
-      {t('meta.categories')}: {category}
-    </h1>
-    
-    <PostList posts={postMetas} />
+<Layout title={title} description={description}>
+  <div class="container mx-auto max-w-3xl px-4">
+    <h1 class="mb-8 text-4xl font-bold">{displayName}</h1>
+    <PostList posts={posts} />
   </div>
-</BaseLayout>
+</Layout>

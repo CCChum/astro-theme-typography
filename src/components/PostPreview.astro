@@ -7,21 +7,38 @@ interface Props {
 }
 
 const { post } = Astro.props
-const { title, description, pubDate, category } = post.data
+const { title, description, pubDate } = post.data
 ---
 
-<article class="group">
-  <a href={`/posts/${post.slug}`} class="not-underline-hover">
-    <div class="mb-2 flex items-center text-sm text-text/60">
-      <time datetime={pubDate.toISOString()}>{formatDate(pubDate)}</time>
-      {category && (
-        <>
-          <span class="mx-2">&middot;</span>
-          <span>{category}</span>
-        </>
-      )}
-    </div>
-    <h2 class="mb-2 text-xl font-bold">{title}</h2>
-    {description && <p class="text-text/80">{description}</p>}
-  </a>
+<article class="prose dark:prose-invert">
+  <h2 class="mb-2">
+    <a href={`/posts/${post.slug}/`} class="no-underline hover:text-primary">
+      {title}
+    </a>
+  </h2>
+  {description && (
+    <p class="text-gray-600 dark:text-gray-400 mt-2">
+      {description}
+    </p>
+  )}
+  <div class="flex items-center gap-4 text-sm text-gray-500 mt-4">
+    <time datetime={pubDate.toISOString()}>
+      {formatDate(pubDate)}
+    </time>
+    {post.data.categories && post.data.categories.length > 0 && (
+      <div class="flex items-center gap-2">
+        <span>•</span>
+        <div class="flex items-center gap-2">
+          {post.data.categories.map((category) => (
+            <a
+              href={`/categories/${category}/`}
+              class="text-gray-500 hover:text-primary no-underline"
+            >
+              {category}
+            </a>
+          ))}
+        </div>
+      </div>
+    )}
+  </div>
 </article>

@@ -1,31 +1,57 @@
 ---
-import type { ThemeConfig } from '@/types'
-import GoogleAnalytics from './analytics/GoogleAnalytics.astro'
-import BaiduAnalytics from './analytics/BaiduAnalytics.astro'
+import { themeConfig } from '@/config'
 
-interface Props {
-  config: ThemeConfig['analytics']
+interface GoogleAnalytics {
+  id: string
 }
 
-const { config } = Astro.props
+interface BaiduAnalytics {
+  id: string
+}
 
-const googleAnalyticsId = config?.google?.id
-const baiduAnalyticsId = config?.baidu?.id
+interface AnalyticsConfig {
+  provider: 'google' | 'baidu'
+  google?: GoogleAnalytics
+  baidu?: BaiduAnalytics
+}
+
+const analytics: AnalyticsConfig = {
+  provider: 'google',
+  google: {
+    id: import.meta.env.PUBLIC_GOOGLE_ANALYTICS_ID || ''
+  }
+}
+
+const { provider, google, baidu } = analytics
+const googleId = google?.id
+const baiduId = baidu?.id
 ---
 
-{
-  googleAnalyticsId && (
-    <GoogleAnalytics id={googleAnalyticsId} />
-  )
-}
+{provider === 'google' && googleId && (
+  <>
+    <script
+      type="text/partytown"
+      src={`https://www.googletagmanager.com/gtag/js?id=${googleId}`}
+    />
+    <script type="text/partytown" define:vars={{ id: googleId }}>
+      window.dataLayer = window.dataLayer || []
+      function gtag() {
+        dataLayer.push(arguments)
+      }
+      gtag('js', new Date())
+      gtag('config', id)
+    </script>
+  </>
+)}
 
-{
-  baiduAnalyticsId && (
-    <BaiduAnalytics id={baiduAnalyticsId} />
-  )
-}
-
-<script define:vars={{ googleAnalyticsId }}>
-  window.dataLayer = window.dataLayer || [];
-  window.googleAnalyticsId = googleAnalyticsId;
-</script>
+{provider === 'baidu' && baiduId && (
+  <script type="text/partytown">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = `https://hm.baidu.com/hm.js?${baiduId}`;
+      var s = document.getElementsByTagName("script")[0]; 
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+)}

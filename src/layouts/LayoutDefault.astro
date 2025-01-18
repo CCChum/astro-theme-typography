@@ -1,82 +1,44 @@
 ---
 import type { ThemeConfig } from '@/types'
-import { themeConfig } from '../config/default'
-import SiteFooter from '@/components/SiteFooter.astro'
-import SiteNavigation from '@/components/SiteNavigation.astro'
-import SiteSeo from '@/components/SiteSeo.astro'
-import SiteTitle from '@/components/SiteTitle.astro'
-import ThemeScript from '@/components/ThemeScript.astro'
-import ThemeToggle from '@/components/ThemeToggle.astro'
-import '~/styles/global.css'
+import Header from '@/components/Header.astro'
+import Footer from '@/components/Footer.astro'
+import Analytics from '@/components/Analytics.astro'
+import { themeConfig } from '@/config'
 
-interface Props {
+export interface Props {
   title?: string
   description?: string
   image?: string
   config?: ThemeConfig
-  seo?: {
-    type?: 'website' | 'article'
-    title?: string
-    description?: string
-    image?: string
-  }
 }
 
-const {
-  config = themeConfig,
-  title = config.site.title,
-  description = config.site.description,
-  image,
-  seo
-} = Astro.props
-
-// Merge SEO data with proper type checking
-const seoData = {
-  type: seo?.type || 'website',
-  title: seo?.title || title,
-  description: seo?.description || description,
-  image: seo?.image || image
-}
-
+const { title, description, image, config = themeConfig } = Astro.props
 ---
 
 <!DOCTYPE html>
-<html lang={config.language || 'en'} class="h-full">
+<html lang={config.site.lang}>
   <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="generator" content={Astro.generator} />
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <SiteSeo {...seoData} />
-    <ThemeScript />
-    <slot name="head" />
+    <title>{title || config.site.title}</title>
+    <meta name="description" content={description || config.site.description} />
+    <meta name="theme-color" content={config.site.themeColor} />
+    <meta property="og:title" content={title || config.site.title} />
+    <meta property="og:description" content={description || config.site.description} />
+    <meta property="og:locale" content={config.site.ogLocale} />
+    {image && <meta property="og:image" content={image} />}
   </head>
-  <body class="h-full bg-white dark:bg-gray-900">
-    <div class="flex min-h-full flex-col">
-      <header class="border-b border-gray-200 dark:border-gray-800">
-        <div class="container mx-auto px-4">
-          <div class="flex items-center justify-between py-4">
-            <SiteTitle config={config} />
-            <div class="flex items-center space-x-4">
-              <SiteNavigation config={config} />
-              <ThemeToggle />
-            </div>
-          </div>
-        </div>
-      </header>
-
-      <main class="flex-1">
-        <div class="container mx-auto px-4 py-8">
-          <slot />
-        </div>
-      </main>
-
-      <SiteFooter config={config} />
-    </div>
-    <slot name="footer" />
-    <script>
-      // Add animation class after page load
-      document.documentElement.classList.add('animation-prepared')
-    </script>
+  <body class="min-h-screen bg-white dark:bg-gray-900">
+    <Header config={config} />
+    <main class="py-8">
+      <slot />
+    </main>
+    <Footer config={config} />
+    <Analytics 
+      googleAnalyticsId={config.analytics?.google?.id}
+      baiduAnalyticsId={config.analytics?.baidu?.id}
+      umamiAnalyticsId={config.analytics?.umami?.id}
+    />
   </body>
 </html>

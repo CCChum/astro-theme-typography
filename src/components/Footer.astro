@@ -1,22 +1,44 @@
 ---
-import type { ThemeConfig } from '@/types'
+import { themeConfig } from '@/config'
+import { useTranslations } from '@/i18n'
 
-interface Props {
-  config: ThemeConfig
-}
+const { language } = Astro.locals
+const { t } = useTranslations(language || 'en')
 
-const { config } = Astro.props
+const year = new Date().getFullYear()
+const { copyright, author } = themeConfig.site
 ---
 
-<footer class="py-6 mt-auto">
-  <div class="container mx-auto px-4">
-    <div class="text-center text-sm text-gray-600 dark:text-gray-400">
-      {config.footer.map((text, i) => (
-        <>
-          {i > 0 && " • "}
-          <span set:html={text} />
-        </>
-      ))}
+<footer class="mt-auto border-t border-gray-200 bg-white py-8 dark:border-gray-800 dark:bg-gray-900">
+  <div class="container mx-auto">
+    <div class="flex flex-col items-center justify-between gap-4 px-4 sm:flex-row">
+      <div class="text-sm text-gray-500 dark:text-gray-400">
+        {copyright ? (
+          <span set:html={copyright.replace('{year}', year.toString())} />
+        ) : (
+          <span>&copy; {year} {author}. {t('footer.rights')}</span>
+        )}
+      </div>
+      
+      <div class="flex items-center space-x-4 text-sm text-gray-500 dark:text-gray-400">
+        <a
+          href="https://astro.build"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="hover:text-primary"
+        >
+          {t('footer.powered')} Astro
+        </a>
+        <span>•</span>
+        <a
+          href="https://github.com/oesx/astro-theme-typography"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="hover:text-primary"
+        >
+          Typography Theme
+        </a>
+      </div>
     </div>
   </div>
 </footer>

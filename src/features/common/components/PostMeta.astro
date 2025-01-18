@@ -1,15 +1,20 @@
 ---
 import type { Post } from '@/types'
+import { useTranslations } from '@/i18n'
 import { formatDate } from '@/utils'
-import PostCategory from './PostCategory.astro'
 
-interface Props {
+export interface Props {
   post: Post
 }
 
 const { post } = Astro.props
-const { translate: t } = Astro.locals
+const { language } = Astro.locals
+const { t } = useTranslations(language || 'en')
 
+const date = formatDate(post.data.updatedDate || post.data.pubDate)
+const readingTime = Math.ceil(post.body.split(/\s+/).length / 200)
+const categories = post.data.categories || []
+const tags = post.data.tags || []
 ---
 
 <header flex="~ col gap-2">
@@ -17,10 +22,57 @@ const { translate: t } = Astro.locals
     <a class="not-prose" href={`/posts/${post.id}/`}>{post.data.title}</a>
   </h1>
   <div class="text-3.5">
-    <span>{t(post.data.modDate ? 'updated_at' : 'posted_at')}</span>
-    <time datetime={post.data.pubDate.toISOString()}>
-      {formatDate(post.data.modDate ?? post.data.pubDate)}
-    </time>
-    {post.data.categories?.map((category: string) => <PostCategory category={category} />)}
+    <div class="flex flex-wrap gap-2 text-sm text-gray-500">
+      <time datetime={post.data.pubDate.toISOString()}>{date}</time>
+      <span>·</span>
+      <span>{readingTime} {t('post.minuteRead')}</span>
+
+      {categories.length > 0 && (
+        <>
+          <span>·</span>
+          <span>
+            {categories.map((category, index) => (
+              <>
+                <a
+                  href={`/categories/${category}`}
+                  class="hover:text-primary"
+                >
+                  {category}
+                </a>
+                {index < categories.length - 1 && ', '}
+              </>
+            ))}
+          </span>
+        </>
+      )}
+
+      {tags.length > 0 && (
+        <>
+          <span>·</span>
+          <span>
+            {tags.map((tag, index) => (
+              <>
+                <a
+                  href={`/tags/${tag}`}
+                  class="hover:text-primary"
+                >
+                  #{tag}
+                </a>
+                {index < tags.length - 1 && ' '}
+              </>
+            ))}
+          </span>
+        </>
+      )}
+
+      {post.data.updatedDate && (
+        <>
+          <span>·</span>
+          <time datetime={post.data.updatedDate.toISOString()}>
+            {t('post.updated')} {formatDate(post.data.updatedDate)}
+          </time>
+        </>
+      )}
+    </div>
   </div>
 </header>

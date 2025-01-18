@@ -1,59 +1,50 @@
 ---
-import Layout from '@/layouts/LayoutDefault.astro'
-import { config } from '~/.config/user'
+import { themeConfig } from '@/config'
+import AdminLayout from '@/layouts/AdminLayout.astro'
 
-const { admin } = config.site
+const { title } = themeConfig.site
 ---
 
-<Layout title="管理员登录">
-  <div class="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-    <div class="max-w-md w-full space-y-8">
-      <div>
-        <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900">
-          管理员登录
-        </h2>
-      </div>
-      <form id="login-form" class="mt-8 space-y-6">
-        <div class="rounded-md shadow-sm -space-y-px">
-          <div>
-            <label for="username" class="sr-only">用户名</label>
-            <input
-              id="username"
-              name="username"
-              type="text"
-              required
-              class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-primary focus:border-primary focus:z-10 sm:text-sm"
-              placeholder="用户名"
-            />
-          </div>
-          <div>
-            <label for="password" class="sr-only">密码</label>
-            <input
-              id="password"
-              name="password"
-              type="password"
-              required
-              class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-primary focus:border-primary focus:z-10 sm:text-sm"
-              placeholder="密码"
-            />
-          </div>
+<AdminLayout title={title} description="Login to admin panel">
+  <div class="flex min-h-screen items-center justify-center">
+    <div class="w-full max-w-md rounded-lg border p-6 shadow-lg">
+      <h1 class="mb-6 text-2xl font-bold">Login</h1>
+      <form action="/api/auth/login" method="POST">
+        <div class="mb-4">
+          <label for="email" class="mb-2 block text-sm font-medium">Email</label>
+          <input
+            type="email"
+            id="email"
+            name="email"
+            class="w-full rounded-lg border p-2"
+            required
+          />
         </div>
-
-        <div>
-          <button
-            type="submit"
-            class="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-primary hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+        <div class="mb-6">
+          <label for="password" class="mb-2 block text-sm font-medium"
+            >Password</label
           >
-            登录
-          </button>
+          <input
+            type="password"
+            id="password"
+            name="password"
+            class="w-full rounded-lg border p-2"
+            required
+          />
         </div>
+        <button
+          type="submit"
+          class="w-full rounded-lg bg-blue-500 px-4 py-2 text-white hover:bg-blue-600"
+        >
+          Login
+        </button>
       </form>
     </div>
   </div>
-</Layout>
+</AdminLayout>
 
 <script>
-  const form = document.getElementById('login-form')
+  const form = document.querySelector('form')
   
   form?.addEventListener('submit', async (e) => {
     e.preventDefault()
@@ -66,7 +57,7 @@ const { admin } = config.site
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          username: formData.get('username'),
+          email: formData.get('email'),
           password: formData.get('password'),
         }),
       })

@@ -1,0 +1,53 @@
+---
+import { getCollection } from 'astro:content'
+import LayoutDefault from '@/layouts/LayoutDefault.astro'
+import PostMeta from '@/components/PostMeta.astro'
+import { themeConfig } from '@/config'
+
+export async function getStaticPaths() {
+  const posts = await getCollection('posts')
+  const categories = new Set()
+  
+  posts.forEach((post) => {
+    post.data.categories?.forEach((category) => {
+      categories.add(category)
+    })
+  })
+
+  return Array.from(categories).map((category) => ({
+    params: { category },
+    props: {
+      posts: posts
+        .filter((post) => post.data.categories?.includes(category))
+        .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
+    }
+  }))
+}
+
+const { category } = Astro.params
+const { posts } = Astro.props
+const displayName = themeConfig.categoryMap[category] || category
+---
+
+<LayoutDefault title={`Category: ${displayName}`} config={themeConfig}>
+  <div class="container mx-auto max-w-3xl px-4">
+    <h1 class="mb-8 text-3xl font-bold">Category: {displayName}</h1>
+    <div class="space-y-8">
+      {
+        posts.map((post) => (
+          <article>
+            <h2 class="mb-2 text-2xl font-bold">
+              <a href={`/posts/${post.slug}`} class="hover:text-primary">
+                {post.data.title}
+              </a>
+            </h2>
+            <PostMeta post={post} />
+            {post.data.description && (
+              <p class="mt-2 text-gray-600">{post.data.description}</p>
+            )}
+          </article>
+        ))
+      }
+    </div>
+  </div>
+</LayoutDefault>

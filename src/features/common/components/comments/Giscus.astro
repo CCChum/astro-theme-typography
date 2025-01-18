@@ -1,33 +1,36 @@
 ---
-import { themeConfig } from '~/.config'
+import type { GiscusConfig } from '@/types'
 
-const { comment } = themeConfig
+export interface Props extends GiscusConfig {}
 
-if (!comment || !comment.giscus) {
-  throw new Error('Giscus comments are not configured')
-}
-
-const giscus = comment.giscus
+const {
+  repo,
+  repoId,
+  category,
+  categoryId,
+  mapping,
+  reactionsEnabled,
+  emitMetadata,
+  inputPosition,
+  lang,
+  loading
+} = Astro.props
 ---
 
-<giscus-widget
-  id="comments"
-  repo={giscus.repo}
-  repoId={giscus.repoId}
-  category={giscus.category}
-  categoryId={giscus.categoryId}
-  mapping={giscus.mapping}
-  term={giscus.term}
-  strict={giscus.strict}
-  reactionsEnabled={giscus.reactionsEnabled}
-  emitMetadata={giscus.emitMetadata}
-  inputPosition={giscus.inputPosition}
-  theme={giscus.theme}
-  lang={giscus.lang}
-  loading={giscus.loading}
->
-</giscus-widget>
-
-<script>
-  import 'giscus'
-</script>
+<div class="giscus">
+  <script
+    src="https://giscus.app/client.js"
+    data-repo={repo}
+    data-repo-id={repoId}
+    data-category={category}
+    data-category-id={categoryId}
+    data-mapping={mapping}
+    data-reactions-enabled={reactionsEnabled.toString()}
+    data-emit-metadata={emitMetadata.toString()}
+    data-input-position={inputPosition}
+    data-lang={lang}
+    data-loading={loading}
+    crossorigin="anonymous"
+    async
+  ></script>
+</div>

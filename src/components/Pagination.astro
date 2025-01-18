@@ -1,43 +1,62 @@
 ---
-import type { Language } from '@/types'
 import { useTranslations } from '@/i18n'
 
 interface Props {
   currentPage: number
-  lastPage: number
+  totalPages: number
   prevUrl?: string
   nextUrl?: string
 }
 
-const { currentPage, lastPage, prevUrl, nextUrl } = Astro.props
-const { t } = useTranslations(Astro.locals.language as Language || 'en')
+const { currentPage, totalPages, prevUrl, nextUrl } = Astro.props
+const { language } = Astro.locals
+const { t } = useTranslations(language || 'en')
+
+const pages = Array.from({ length: totalPages }, (_, i) => i + 1)
 ---
 
-<nav class="flex items-center justify-between mt-8">
-  <div class="flex-1 flex justify-start">
+<nav class="mt-8 flex items-center justify-between border-t border-gray-200 px-4 sm:px-0">
+  <div class="-mt-px flex w-0 flex-1">
     {prevUrl && (
       <a
         href={prevUrl}
-        class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+        class="inline-flex items-center border-t-2 border-transparent pr-1 pt-4 text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700"
       >
+        <svg class="mr-3 h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+          <path fill-rule="evenodd" d="M18 10a.75.75 0 01-.75.75H4.66l2.1 1.95a.75.75 0 11-1.02 1.1l-3.5-3.25a.75.75 0 010-1.1l3.5-3.25a.75.75 0 111.02 1.1l-2.1 1.95h12.59A.75.75 0 0118 10z" clip-rule="evenodd" />
+        </svg>
         {t('pagination.prev')}
       </a>
     )}
   </div>
-
-  <div class="hidden md:flex justify-center">
-    <span class="text-sm text-gray-700">
-      {t('pagination.page')} {currentPage} {t('pagination.of')} {lastPage}
-    </span>
+  <div class="hidden md:-mt-px md:flex">
+    {pages.map((page) => {
+      const isCurrent = page === currentPage
+      return (
+        <a
+          href={page === 1 ? '/posts' : `/posts/${page}`}
+          class={`inline-flex items-center border-t-2 px-4 pt-4 text-sm font-medium ${
+            isCurrent
+              ? 'border-primary text-primary'
+              : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
+          }`}
+          aria-current={isCurrent ? 'page' : undefined}
+        >
+          {page}
+        </a>
+      )
+    })}
   </div>
-
-  <div class="flex-1 flex justify-end">
+  <div class="-mt-px flex w-0 flex-1 justify-end">
     {nextUrl && (
       <a
         href={nextUrl}
-        class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+        class="inline-flex items-center border-t-2 border-transparent pl-1 pt-4 text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700"
       >
         {t('pagination.next')}
+        <svg class="ml-3 h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+          <path fill-rule="evenodd" d="M2 10a.75.75 0 01.75-.75h12.59l-2.1-1.95a.75.75 0 111.02-1.1l3.5 3.25a.75.75 0 010 1.1l-3.5 3.25a.75.75 0 11-1.02-1.1l2.1-1.95H2.75A.75.75 0 012 10z" clip-rule="evenodd" />
+        </svg>
       </a>
     )}
   </div>

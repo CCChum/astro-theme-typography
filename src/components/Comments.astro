@@ -2,31 +2,29 @@
 import type { CommentConfig } from '@/types'
 import Giscus from './comments/Giscus.astro'
 import Disqus from './comments/Disqus.astro'
-import Utterances from './comments/Utterances.astro'
 import Twikoo from './comments/Twikoo.astro'
 
-interface Props {
+export interface Props {
   config: CommentConfig
-  url?: string
-  title?: string
-  id?: string
+  path?: string
 }
 
-const { config, url, title, id } = Astro.props
+const { config, path } = Astro.props
+const provider = config.provider
+
+const giscusConfig = config.giscus
+const disqusConfig = config.disqus
+const twikooConfig = config.twikoo
 ---
 
-<div class="mt-8">
-  {
-    config.giscus && (
-      <Giscus
-        config={config.giscus}
-        url={url}
-        title={title}
-        id={id}
-      />
-    )
-  }
-  {config.disqus && <Disqus config={config.disqus} />}
-  {config.utterances && <Utterances config={config.utterances} />}
-  {config.twikoo && <Twikoo config={config.twikoo} />}
+<div class="comments mt-16">
+  {provider === 'giscus' && giscusConfig && <Giscus {...giscusConfig} />}
+  {provider === 'disqus' && disqusConfig && <Disqus {...disqusConfig} />}
+  {provider === 'twikoo' && twikooConfig && <Twikoo {...twikooConfig} path={path} />}
 </div>
+
+<style>
+  .comments {
+    @apply mt-8;
+  }
+</style>

@@ -1,35 +1,24 @@
 ---
-import { themeConfig } from '~/.config'
-import type { CollectionEntry } from 'astro:content'
-import Disqus from '~/components/comments/Disqus.astro'
-import Giscus from '~/components/comments/Giscus.astro'
-import Twikoo from '~/components/comments/Twikoo.astro'
+import type { CommentConfig } from '@/types'
+import Giscus from './comments/Giscus.astro'
+import Disqus from './comments/Disqus.astro'
+import Twikoo from './comments/Twikoo.astro'
 
-interface Props {
-  post: CollectionEntry<'posts'>
+export interface Props {
+  config: CommentConfig
+  path?: string
 }
 
-const { post } = Astro.props
-const { id, data } = post
-const { comments } = themeConfig
+const { config, path } = Astro.props
+const provider = config.provider
 
-const path = `/posts/${id}`
-const url = `${Astro.site?.href}${path}`
-
-const provider = getProvider()
-
-function getProvider() {
-  const result = Object.keys(themeConfig.comment)[0]
-  return result || ''
-}
+const giscusConfig = config.giscus
+const disqusConfig = config.disqus
+const twikooConfig = config.twikoo
 ---
 
-{
-  provider !== '' && (
-    <div py-16>
-      {provider === 'disqus' && <Disqus identifier={id} url={url} title={data.title} />}
-      {provider === 'giscus' && <Giscus />}
-      {provider === 'twikoo' && <Twikoo path={path} />}
-    </div>
-  )
-}
+<div class="comments mt-16">
+  {provider === 'giscus' && giscusConfig && <Giscus {...giscusConfig} />}
+  {provider === 'disqus' && disqusConfig && <Disqus {...disqusConfig} />}
+  {provider === 'twikoo' && twikooConfig && <Twikoo {...twikooConfig} path={path} />}
+</div>

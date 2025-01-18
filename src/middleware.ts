@@ -1,47 +1,36 @@
-import type { MiddlewareHandler } from 'astro'
-import type { Language, Messages } from '@/types'
-import { defineMiddleware } from 'astro:middleware'
-import { useTranslations, defaultLanguage } from '@/i18n'
+import { defineMiddleware } from 'astro/middleware'
+import type { Session } from '@auth/core'
+import { languages, type Language, useTranslations } from './i18n'
 
-// Define strict types for translation function
-type TranslationParams = Record<string, string | number>
-
-// Extend Astro's Locals interface
 declare module 'astro' {
   interface Locals {
     language: Language
-    t: (key: keyof Messages) => string
+    session?: Session
+    t: ReturnType<typeof useTranslations>['t']
+    auth?: {
+      validate: () => Promise<Session | null>
+    }
   }
 }
 
-// Language utilities
-const isValidLanguage = (lang: string | undefined): lang is Language => {
-  return lang === 'en' || lang === 'zh' || lang === 'ja'
-}
+export const onRequest = defineMiddleware(async (context, next) => {
+  // Get language from URL or cookie
+  const lang = context.url.pathname.split('/')[1]
+  const language = languages.includes(lang as any) ? lang : 'en'
 
-const getLanguageFromPathname = (pathname: string): Language | undefined => {
-  const lang = pathname.split('/')[1]
-  return isValidLanguage(lang) ? lang : undefined
-}
+  // Set up i18n
+  context.locals.language = language as any
+  context.locals.t = useTranslations(language as any).t
 
-export const onRequest = defineMiddleware(async ({ locals, url }, next) => {
-  try {
-    // Determine language from URL or default
-    const urlLang = getLanguageFromPathname(url.pathname)
-    const language = urlLang || defaultLanguage
-    locals.language = language
+  // Set up auth
+  const session = await context.locals.auth?.validate()
+  context.locals.session = session
 
-    // Set up translation function with type safety
-    const { t } = useTranslations(language)
-    ;(locals as any).t = (key: keyof Messages) => t(key)
-
-    const response = await next()
-
-    // Add language info to response headers
-    response.headers.set('Content-Language', locals.language)
-    return response
-  } catch (error) {
-    console.error('Middleware error:', error)
-    return new Response('Internal Server Error', { status: 500 })
+  // Check admin access
+  const isAdmin = context.locals.session?.user?.role === 'admin'
+  if (context.url.pathname.startsWith('/admin') && !isAdmin) {
+    return context.redirect('/login')
   }
+
+  return next()
 })

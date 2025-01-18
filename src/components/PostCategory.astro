@@ -1,14 +1,16 @@
 ---
-interface Props {
+import type { ThemeConfig } from '@/types'
+
+export interface Props {
   category: string
+  config: ThemeConfig
 }
 
-const { category } = Astro.props
+const { category, config } = Astro.props
+const displayName = config.site.categoryMap[category] || category
+const categoryPath = `/categories/${category}/`
 ---
 
-<a
-  href={`/categories/${category}`}
-  class="rounded bg-gray-100 px-2 py-1 text-sm not-underline-hover dark:bg-gray-800"
->
-  {category}
+<a href={categoryPath} class="hover:text-primary">
+  {displayName}
 </a>

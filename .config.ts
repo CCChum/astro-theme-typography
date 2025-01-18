@@ -4,8 +4,8 @@ export const themeConfig: ThemeConfig = {
   site: {
     title: 'Astro Typography',
     subtitle: 'A clean and minimal blog theme',
-    author: 'Your Name',
     description: 'A clean and minimal blog theme for Astro',
+    author: 'Your Name',
     website: 'https://astro-theme-typography.vercel.app/',
     pageSize: 5,
     socialLinks: [

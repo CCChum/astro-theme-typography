@@ -1,0 +1,30 @@
+{
+  "site": {
+    "title": "Astro Theme Typography",
+    "description": "A clean and minimal blog theme for Astro"
+  },
+  "nav": {
+    "home": "Home",
+    "posts": "Posts",
+    "categories": "Categories",
+    "archive": "Archive"
+  },
+  "post": {
+    "readMore": "Read More",
+    "updated": "Updated",
+    "categories": "Categories",
+    "tags": "Tags",
+    "relatedPosts": "Related Posts"
+  },
+  "pagination": {
+    "prev": "Previous",
+    "next": "Next",
+    "page": "Page",
+    "of": "of"
+  },
+  "categories": {
+    "title": "Categories",
+    "description": "Browse posts by category",
+    "count": "{count} posts"
+  }
+}

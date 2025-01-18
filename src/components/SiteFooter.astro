@@ -1,27 +1,27 @@
 ---
-import { themeConfig } from '@/config/default'
+import type { ThemeConfig } from '@/types'
 
-const { site, footer, author, website } = themeConfig
+interface Props {
+  config: ThemeConfig
+}
+
+const { config } = Astro.props
+const { author, website } = config.site
 const year = new Date().getFullYear()
 
-const renderText = (text: string) => {
-  return text.replace('❤️', `<span class="text-red-500">❤️</span>`)
-}
+const footerText = ` ${year} ${author || 'Astro Theme Typography'}`
 ---
 
-<footer class="text-sm leading-[1.75] mt-4">
-  <div>
-    {footer.map((text) => (
-      <div set:html={renderText(text)} />
-    ))}
-  </div>
-
-  <div class="mt-2">
-    {footer.map((text) =>
-      text
-        .replace('%year', year.toString())
-        .replace('%author', author)
-        .replace('%website', website)
-    )}
+<footer class="mt-auto py-8 text-center text-sm text-gray-500">
+  <div class="container mx-auto px-4">
+    {
+      website ? (
+        <a href={website} target="_blank" rel="noopener noreferrer">
+          &copy; {footerText}
+        </a>
+      ) : (
+        <span>&copy; {footerText}</span>
+      )
+    }
   </div>
 </footer>

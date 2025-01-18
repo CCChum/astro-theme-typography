@@ -1,27 +1,22 @@
 ---
 import type { CollectionEntry } from 'astro:content'
-import PostPreview from './PostPreview.astro'
-import Pagination from './Pagination.astro'
+import type { Post } from '@/types'
+import { useTranslations } from '@/i18n'
+import PostCard from './PostCard.astro'
 
 interface Props {
   posts: CollectionEntry<'posts'>[]
-  page?: {
-    currentPage: number
-    size: number
-    total: number
-    url: {
-      current: string
-      next?: string
-      prev?: string
-    }
-  }
 }
 
-const { posts, page } = Astro.props
+const { posts } = Astro.props
+const { language } = Astro.locals
+const { t } = useTranslations(language || 'en')
 ---
 
-<div class="space-y-8">
-  {posts.map((post) => <PostPreview post={post} />)}
+<div class="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+  {posts.map(post => <PostCard post={post} />)}
 </div>
 
-{page && <Pagination {...page} />}
+{posts.length === 0 && (
+  <p class="text-center text-gray-600">{t('posts.empty')}</p>
+)}

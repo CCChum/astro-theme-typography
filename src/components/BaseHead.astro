@@ -1,4 +1,6 @@
 ---
+import { themeConfig } from '@/config'
+
 interface Props {
   title?: string
   description?: string
@@ -7,21 +9,40 @@ interface Props {
 }
 
 const {
-  title = "Astro Theme Typography",
-  description = "A clean and minimal blog theme for Astro",
+  title = themeConfig.site.title,
+  description = themeConfig.site.description,
   image = "/placeholder-social.jpg",
   canonicalURL = new URL(Astro.url.pathname, Astro.site),
 } = Astro.props
+
+const fontFamily = themeConfig.appearance.font === 'sans' 
+  ? 'Inter'
+  : 'Merriweather'
 ---
 
 <!-- Global Metadata -->
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 <meta name="generator" content={Astro.generator} />
 
-<!-- Canonical URL -->
-<link rel="canonical" href={canonicalURL} />
+<!-- Favicon -->
+<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="manifest" href="/site.webmanifest">
+
+<!-- Fonts -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link 
+  href={`https://fonts.googleapis.com/css2?family=${
+    fontFamily === 'Inter' 
+      ? 'Inter:wght@400;500;600;700&display=swap'
+      : 'Merriweather:wght@400;700&display=swap'
+  }`}
+  rel="stylesheet"
+>
 
 <!-- Primary Meta Tags -->
 <title>{title}</title>
@@ -41,3 +62,7 @@ const {
 <meta property="twitter:title" content={title} />
 <meta property="twitter:description" content={description} />
 <meta property="twitter:image" content={new URL(image, Astro.url)} />
+
+<!-- Theme Color -->
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0f172a" media="(prefers-color-scheme: dark)">

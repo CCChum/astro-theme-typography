@@ -2,7 +2,7 @@
 title: Hello World
 description: Welcome to Astro Typography, a clean and minimal blog theme.
 pubDate: 2024-01-15
-category: General
+categories: ["General"]
 ---
 
 Welcome to Astro Typography, a clean and minimal blog theme built with Astro and UnoCSS.

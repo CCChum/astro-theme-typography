@@ -1,96 +1,50 @@
 ---
-import { themeConfig } from '@/config/default'
+import { themeConfig } from '@/config'
 import LayoutDefault from '@/layouts/LayoutDefault.astro'
+
+const { admin } = themeConfig
 ---
 
 <LayoutDefault title="Login">
-  <div class="flex min-h-full flex-col justify-center py-12 sm:px-6 lg:px-8">
-    <div class="sm:mx-auto sm:w-full sm:max-w-md">
-      <h2 class="mt-6 text-center text-3xl font-bold tracking-tight text-gray-900">
-        {themeConfig.site.title}
-      </h2>
-      <p class="mt-2 text-center text-sm text-gray-600">
-        Sign in to your account
-      </p>
-    </div>
-
-    <div class="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-      <div class="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
-        <form class="space-y-6" action="#" method="POST">
-          <div>
-            <label
-              for="username"
-              class="block text-sm font-medium text-gray-700"
-            >
-              Username
-            </label>
-            <div class="mt-1">
+  <div class="flex min-h-screen items-center justify-center">
+    <div class="w-full max-w-sm rounded-lg border p-6 shadow-md">
+      <h1 class="mb-6 text-2xl font-bold">Login</h1>
+      {
+        admin?.enabled && (
+          <form action="/api/auth/login" method="post">
+            <div class="mb-4">
+              <label for="username" class="mb-2 block text-sm font-medium">
+                Username
+              </label>
               <input
+                type="text"
                 id="username"
                 name="username"
-                type="text"
+                class="w-full rounded-lg border px-3 py-2"
                 required
-                class="block w-full appearance-none rounded-md border border-gray-300 px-3 py-2 placeholder-gray-400 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
               />
             </div>
-          </div>
-
-          <div>
-            <label
-              for="password"
-              class="block text-sm font-medium text-gray-700"
-            >
-              Password
-            </label>
-            <div class="mt-1">
+            <div class="mb-6">
+              <label for="password" class="mb-2 block text-sm font-medium">
+                Password
+              </label>
               <input
+                type="password"
                 id="password"
                 name="password"
-                type="password"
+                class="w-full rounded-lg border px-3 py-2"
                 required
-                class="block w-full appearance-none rounded-md border border-gray-300 px-3 py-2 placeholder-gray-400 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
               />
             </div>
-          </div>
-
-          <div>
             <button
               type="submit"
-              class="flex w-full justify-center rounded-md border border-transparent bg-indigo-600 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+              class="w-full rounded-lg bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
             >
-              Sign in
+              Login
             </button>
-          </div>
-        </form>
-      </div>
+          </form>
+        )
+      }
     </div>
   </div>
 </LayoutDefault>
-
-<script>
-  const form = document.querySelector('form')
-  form?.addEventListener('submit', async (e) => {
-    e.preventDefault()
-    const formData = new FormData(e.target as HTMLFormElement)
-    const data = Object.fromEntries(formData)
-
-    try {
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data),
-      })
-
-      if (response.ok) {
-        window.location.href = '/'
-      } else {
-        const error = await response.json()
-        alert(error.message || 'Login failed')
-      }
-    } catch (error) {
-      alert('An error occurred')
-    }
-  })
-</script>

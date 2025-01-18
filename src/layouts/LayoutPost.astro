@@ -1,82 +1,148 @@
 ---
-import type { CollectionEntry } from 'astro:content'
-import type { PostMeta, ThemeConfig } from '@/types'
-import LayoutDefault from './LayoutDefault.astro'
-import PostMetaComponent from '@/components/PostMeta.astro'
-import Comments from '@/components/Comments.astro'
+import BaseHead from '@/components/BaseHead.astro'
+import Header from '@/components/Header.astro'
+import Footer from '@/components/Footer.astro'
+import PostMeta from '@/components/PostMeta.astro'
+import { themeConfig } from '@/config'
+import type { LayoutPostProps } from '@/types'
 
-interface Props {
-  post: CollectionEntry<'posts'>
-  prev?: CollectionEntry<'posts'>
-  next?: CollectionEntry<'posts'>
-  config: ThemeConfig
-}
+interface Props extends LayoutPostProps {}
 
-const { post, prev, next, config } = Astro.props
-const { title, description, pubDate: publishDate, updatedDate, categories, tags } = post.data
-
-const postMeta: PostMeta = {
+const { post, prev, next } = Astro.props
+const {
   title,
   description,
-  publishDate,
+  pubDate,
   updatedDate,
-  categories,
-  tags,
-  slug: post.slug,
-  collection: post.collection,
-  body: post.body
-}
+  author,
+  avatar,
+  readingTime,
+  categories = [],
+  tags = [],
+} = post.data
 
-// Convert prev/next to PostMeta format if they exist
-const prevPost = prev && {
-  ...prev.data,
-  publishDate: prev.data.pubDate,
-  slug: prev.slug,
-  collection: prev.collection,
-  body: prev.body
-} as PostMeta
-
-const nextPost = next && {
-  ...next.data,
-  publishDate: next.data.pubDate,
-  slug: next.slug,
-  collection: next.collection,
-  body: next.body
-} as PostMeta
+const { title: siteTitle } = themeConfig.site
 ---
 
-<LayoutDefault title={title} description={description} config={config}>
-  <article class="prose prose-lg dark:prose-invert mx-auto">
-    <header class="mb-8">
-      <h1 class="text-4xl font-bold mb-4">{title}</h1>
-      <PostMetaComponent post={postMeta} />
-    </header>
+<!doctype html>
+<html lang={Astro.locals.language}>
+  <head>
+    <BaseHead
+      title={`${title} | ${siteTitle}`}
+      description={description || ''}
+      image={post.data.image}
+    />
+  </head>
+  <body>
+    <Header />
+    <main class="mx-auto max-w-3xl px-4 py-12">
+      <article class="prose mx-auto dark:prose-invert lg:prose-lg">
+        <header class="mb-8">
+          <h1 class="mb-4 text-4xl font-bold">{title}</h1>
+          <PostMeta
+            pubDate={pubDate}
+            updatedDate={updatedDate}
+            author={author}
+            avatar={avatar}
+            readingTime={readingTime}
+            categories={categories}
+            tags={tags}
+          />
+        </header>
+        <slot />
+      </article>
 
-    <div class="mt-8">
-      <slot />
-    </div>
-
-    <footer class="mt-8 pt-8 border-t">
-      <nav class="flex justify-between">
-        {prevPost && (
-          <a href={`/posts/${prevPost.slug}`} class="group">
-            <div class="text-sm text-gray-500">← Previous Post</div>
-            <div class="font-medium text-gray-700 group-hover:text-primary-600">
-              {prevPost.title}
-            </div>
-          </a>
-        )}
-        {nextPost && (
-          <a href={`/posts/${nextPost.slug}`} class="group ml-auto text-right">
-            <div class="text-sm text-gray-500">Next Post →</div>
-            <div class="font-medium text-gray-700 group-hover:text-primary-600">
-              {nextPost.title}
-            </div>
-          </a>
-        )}
+      <!-- Post Navigation -->
+      <nav class="mt-12 flex justify-between border-t pt-8">
+        {
+          prev && (
+            <a
+              href={`/posts/${prev.slug}`}
+              class="group flex flex-col items-start"
+            >
+              <span class="mb-1 text-sm text-gray-500">Previous Post</span>
+              <span class="font-medium group-hover:text-primary">
+                {prev.data.title}
+              </span>
+            </a>
+          )
+        }
+        {
+          next && (
+            <a
+              href={`/posts/${next.slug}`}
+              class="group ml-auto flex flex-col items-end"
+            >
+              <span class="mb-1 text-sm text-gray-500">Next Post</span>
+              <span class="font-medium group-hover:text-primary">
+                {next.data.title}
+              </span>
+            </a>
+          )
+        }
       </nav>
-    </footer>
 
-    {config.comment && <Comments config={config.comment} />}
-  </article>
-</LayoutDefault>
+      <!-- Comments -->
+      {
+        themeConfig.comment && (
+          <div class="mt-12 border-t pt-8">
+            {themeConfig.comment.provider === 'giscus' && (
+              <div
+                class="giscus"
+                data-repo={themeConfig.comment.giscus?.repo}
+                data-repo-id={themeConfig.comment.giscus?.repoId}
+                data-category={themeConfig.comment.giscus?.category}
+                data-category-id={themeConfig.comment.giscus?.categoryId}
+                data-mapping={themeConfig.comment.giscus?.mapping}
+                data-reactions-enabled={themeConfig.comment.giscus?.reactionsEnabled}
+                data-emit-metadata={themeConfig.comment.giscus?.emitMetadata}
+                data-input-position={themeConfig.comment.giscus?.inputPosition}
+                data-lang={themeConfig.comment.giscus?.lang}
+                data-loading={themeConfig.comment.giscus?.loading}
+              />
+            )}
+            {themeConfig.comment.provider === 'disqus' && (
+              <div id="disqus_thread" />
+            )}
+            {themeConfig.comment.provider === 'twikoo' && (
+              <div id="twikoo" />
+            )}
+          </div>
+        )
+      }
+    </main>
+    <Footer />
+  </body>
+</html>
+
+<script>
+  // Load comment system scripts
+  const config = themeConfig.comment
+  if (config) {
+    if (config.provider === 'giscus') {
+      const script = document.createElement('script')
+      script.src = 'https://giscus.app/client.js'
+      script.async = true
+      document.body.appendChild(script)
+    } else if (config.provider === 'disqus' && config.disqus) {
+      const script = document.createElement('script')
+      script.src = `https://${config.disqus.shortname}.disqus.com/embed.js`
+      script.async = true
+      script.setAttribute('data-timestamp', Date.now().toString())
+      document.body.appendChild(script)
+    } else if (config.provider === 'twikoo' && config.twikoo) {
+      const script = document.createElement('script')
+      script.src = 'https://cdn.jsdelivr.net/npm/twikoo@1.6.22/dist/twikoo.all.min.js'
+      script.async = true
+      script.onload = () => {
+        window.twikoo.init({
+          envId: config.twikoo.envId,
+          el: '#twikoo',
+          region: config.twikoo.region,
+          lang: config.twikoo.lang
+        })
+      }
+      document.body.appendChild(script)
+    }
+  }
+</script>

@@ -1,46 +1,23 @@
 ---
-import type { ThemeConfig } from '@/types'
+import { themeConfig } from '@/config'
 import { useTranslations } from '@/i18n'
-import type { Language } from '@/types'
+import ThemeToggle from './ThemeToggle.astro'
+import SiteTitle from './SiteTitle.astro'
+import SiteNavigation from './SiteNavigation.astro'
 
-interface Props {
-  config: ThemeConfig
-}
-
-const { config } = Astro.props
-const t = useTranslations(Astro.locals.language as Language || 'en')
+const { language } = Astro.locals
+const { t } = useTranslations(language || 'en')
 ---
 
-<header class="py-6">
-  <nav class="container mx-auto px-4">
-    <div class="flex items-center justify-between">
-      <a href="/" class="text-2xl font-bold">
-        {config.site.title}
-      </a>
+<header class="sticky top-0 z-40 w-full border-b border-gray-200 bg-white/80 backdrop-blur dark:border-gray-800 dark:bg-gray-900/80">
+  <div class="container mx-auto px-4">
+    <nav class="flex h-16 items-center justify-between">
+      <SiteTitle />
       
-      <div class="hidden md:flex space-x-6">
-        {config.navLinks.map(link => (
-          <a
-            href={link.href}
-            class="text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white"
-          >
-            {link.name}
-          </a>
-        ))}
+      <div class="flex items-center gap-4">
+        <SiteNavigation />
+        <ThemeToggle />
       </div>
-
-      <div class="flex items-center space-x-4">
-        {config.socialLinks.map(link => (
-          <a
-            href={link.href}
-            target="_blank"
-            rel="noopener noreferrer"
-            class="text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white"
-          >
-            {link.name}
-          </a>
-        ))}
-      </div>
-    </div>
-  </nav>
+    </nav>
+  </div>
 </header>

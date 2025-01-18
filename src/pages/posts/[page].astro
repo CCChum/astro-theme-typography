@@ -1,0 +1,41 @@
+---
+import type { GetStaticPaths } from 'astro'
+import type { Post } from '@/types'
+import { getCollection } from 'astro:content'
+import { useTranslations } from '@/i18n'
+import { themeConfig } from '@/config'
+import Layout from '@/layouts/Layout.astro'
+import PostList from '@/components/PostList.astro'
+import Pagination from '@/components/Pagination.astro'
+
+export const getStaticPaths = (async ({ paginate }) => {
+  const posts = await getCollection('posts')
+  const publishedPosts = posts
+    .filter(post => !post.data.draft)
+    .sort((a, b) => new Date(b.data.pubDate).valueOf() - new Date(a.data.pubDate).valueOf())
+
+  return paginate(publishedPosts, { pageSize: themeConfig.site.pageSize })
+}) satisfies GetStaticPaths
+
+const { page } = Astro.props
+const { language } = Astro.locals
+const { t } = useTranslations(language || 'en')
+
+const title = t('posts.title')
+const description = t('posts.description')
+---
+
+<Layout title={title} description={description}>
+  <div class="container mx-auto max-w-3xl px-4">
+    <h1 class="mb-8 text-3xl font-bold">{title}</h1>
+    
+    <PostList posts={page.data} />
+    
+    <Pagination 
+      currentPage={page.currentPage}
+      totalPages={page.lastPage} 
+      prevUrl={page.url.prev}
+      nextUrl={page.url.next}
+    />
+  </div>
+</Layout>

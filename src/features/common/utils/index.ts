@@ -1,66 +1,46 @@
-import type { Post } from '~/types'
+import type { Post, PostFrontmatter } from '@/types'
 import { getCollection } from 'astro:content'
-import dayjs from 'dayjs'
+import type { CollectionEntry } from 'astro:content'
 import MarkdownIt from 'markdown-it'
-import sanitizeHtml from 'sanitize-html'
 
-export async function getCategories() {
-  const posts = await getPosts()
-  const categories = new Map<string, Post[]>()
+const parser = new MarkdownIt()
 
-  for (const post of posts) {
-    if (post.data.categories) {
-      for (const c of post.data.categories) {
-        const posts = categories.get(c) || []
-        posts.push(post)
-        categories.set(c, posts)
-      }
-    }
-  }
-
-  return categories
-}
-
-export async function getPosts(isArchivePage = false) {
+export async function getPosts(): Promise<CollectionEntry<'posts'>[]> {
   const posts = await getCollection('posts')
-
-  posts.sort((a: Post, b: Post) => {
-    if (isArchivePage) {
-      return dayjs(a.data.pubDate).isBefore(dayjs(b.data.pubDate)) ? 1 : -1
-    }
-
-    const aDate = a.data.modDate ? dayjs(a.data.modDate) : dayjs(a.data.pubDate)
-    const bDate = b.data.modDate ? dayjs(b.data.modDate) : dayjs(b.data.pubDate)
-
-    return aDate.isBefore(bDate) ? 1 : -1
-  })
-
+  
+  // Filter out draft posts in production
   if (import.meta.env.PROD) {
-    return posts.filter((post: Post) => post.data.draft !== true)
+    return posts.filter(post => !post.data.draft)
   }
-
   return posts
 }
 
-const parser = new MarkdownIt()
-export function getPostDescription(post: Post) {
+export async function getPostsByCategory(category: string): Promise<CollectionEntry<'posts'>[]> {
+  const posts = await getPosts()
+  return posts.filter(post => post.data.categories?.includes(category))
+}
+
+export function formatDate(date: Date): string {
+  return date.toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  })
+}
+
+export function getPostDescription(post: CollectionEntry<'posts'>): string {
   if (post.data.description) {
     return post.data.description
   }
-
-  const html = parser.render(post.body || '')
-  const sanitized = sanitizeHtml(html, { allowedTags: [] })
-  return sanitized.slice(0, 400)
-}
-
-export function formatDate(date: Date, format: string = 'YYYY-MM-DD') {
-  return dayjs(date).format(format)
+  const content = parser.render(post.body)
+  const text = content.replace(/<[^>]*>/g, '')
+  return text.slice(0, 200) + (text.length > 200 ? '...' : '')
 }
 
 export function getPathFromCategory(
   category: string,
-  category_map: { name: string, path: string }[],
-) {
+  category_map: { name: string; path: string }[]
+): string {
   const mappingPath = category_map.find(l => l.name === category)
   return mappingPath ? mappingPath.path : category
 }

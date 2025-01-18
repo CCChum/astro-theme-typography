@@ -1,19 +1,33 @@
 ---
-// No props needed for this component
+import { themeConfig } from '@/config'
+
+const { theme = 'system' } = themeConfig.appearance
 ---
 
-<script is:inline>
+<script is:inline define:vars={{ defaultTheme: theme }}>
   function getThemePreference() {
     if (typeof localStorage !== 'undefined' && localStorage.getItem('theme')) {
       return localStorage.getItem('theme')
     }
-    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+    
+    if (defaultTheme === 'system') {
+      return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+    }
+    
+    return defaultTheme
   }
 
   function updateTheme(theme) {
-    document.documentElement.classList.remove('light', 'dark')
-    document.documentElement.classList.add(theme)
-    localStorage.setItem('theme', theme)
+    if (theme === 'system') {
+      const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+      document.documentElement.classList.remove('light', 'dark')
+      document.documentElement.classList.add(systemTheme)
+      localStorage.removeItem('theme')
+    } else {
+      document.documentElement.classList.remove('light', 'dark')
+      document.documentElement.classList.add(theme)
+      localStorage.setItem('theme', theme)
+    }
   }
 
   // Initialize theme
@@ -24,12 +38,15 @@
   window.addEventListener('theme-change', (e) => {
     updateTheme(e.detail)
   })
+
+  // Listen for system theme changes
+  if (defaultTheme === 'system') {
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+      if (!localStorage.getItem('theme')) {
+        updateTheme(e.matches ? 'dark' : 'light')
+      }
+    })
+  }
 </script>
 
-<div id="theme-provider"></div>
-
-<style>
-  #theme-provider {
-    display: none;
-  }
-</style>
+<slot />

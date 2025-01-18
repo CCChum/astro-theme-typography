@@ -1,93 +1,167 @@
 ---
-import AdminLayout from '../../layouts/AdminLayout.astro'
+import { themeConfig } from '@/config'
+import AdminLayout from '@/layouts/AdminLayout.astro'
+import type { AdminLayoutProps } from '@/types'
+
+const props: AdminLayoutProps = {
+  title: 'Settings',
+  description: 'Configure your blog settings',
+  config: themeConfig
+}
 ---
 
-<AdminLayout>
-  <div class="p-6">
-    <h1 class="text-2xl font-bold mb-6">管理員設置</h1>
-    
-    <form id="admin-settings-form" class="max-w-md">
-      <div class="mb-4">
-        <label class="block text-sm font-medium mb-2" for="username">
-          用戶名
-        </label>
-        <input
-          type="text"
-          id="username"
-          name="username"
-          class="w-full px-3 py-2 border rounded-md"
-          required
-        />
+<AdminLayout {...props}>
+  <div class="container mx-auto px-4 py-8">
+    <h1 class="mb-8 text-3xl font-bold">Settings</h1>
+    <form id="settings-form" class="space-y-8">
+      <div class="space-y-6">
+        <h2 class="text-xl font-semibold">Site Settings</h2>
+        <div>
+          <label for="title" class="mb-2 block text-sm font-medium">Title</label>
+          <input
+            type="text"
+            id="title"
+            name="title"
+            class="w-full rounded-lg border p-2"
+          />
+        </div>
+        <div>
+          <label for="description" class="mb-2 block text-sm font-medium"
+            >Description</label
+          >
+          <textarea
+            id="description"
+            name="description"
+            rows="3"
+            class="w-full rounded-lg border p-2"></textarea>
+        </div>
+        <div>
+          <label for="author" class="mb-2 block text-sm font-medium">Author</label>
+          <input
+            type="text"
+            id="author"
+            name="author"
+            class="w-full rounded-lg border p-2"
+          />
+        </div>
       </div>
-      
-      <div class="mb-6">
-        <label class="block text-sm font-medium mb-2" for="password">
-          密碼
-        </label>
-        <input
-          type="password"
-          id="password"
-          name="password"
-          class="w-full px-3 py-2 border rounded-md"
-          required
-        />
+
+      <div class="space-y-6">
+        <h2 class="text-xl font-semibold">Appearance</h2>
+        <div>
+          <label for="theme" class="mb-2 block text-sm font-medium">Theme</label>
+          <select id="theme" name="theme" class="w-full rounded-lg border p-2">
+            <option value="system">System</option>
+            <option value="light">Light</option>
+            <option value="dark">Dark</option>
+          </select>
+        </div>
+        <div>
+          <label for="font" class="mb-2 block text-sm font-medium">Font</label>
+          <select id="font" name="font" class="w-full rounded-lg border p-2">
+            <option value="sans">Sans</option>
+            <option value="serif">Serif</option>
+          </select>
+        </div>
       </div>
-      
+
+      <div class="space-y-6">
+        <h2 class="text-xl font-semibold">Comments</h2>
+        <div>
+          <label for="provider" class="mb-2 block text-sm font-medium"
+            >Provider</label
+          >
+          <select id="provider" name="provider" class="w-full rounded-lg border p-2">
+            <option value="giscus">Giscus</option>
+            <option value="disqus">Disqus</option>
+            <option value="twikoo">Twikoo</option>
+          </select>
+        </div>
+      </div>
+
       <button
         type="submit"
-        class="bg-primary text-white px-4 py-2 rounded-md hover:opacity-90"
+        class="rounded-lg bg-blue-500 px-4 py-2 text-white hover:bg-blue-600"
       >
-        保存設置
+        Save Settings
       </button>
     </form>
   </div>
+</AdminLayout>
 
-  <script>
-    const form = document.getElementById('admin-settings-form')
-    
-    // 獲取當前設置
-    async function getCurrentSettings() {
-      try {
-        const response = await fetch('/api/admin/settings')
-        if (response.ok) {
-          const data = await response.json()
-          const usernameInput = document.getElementById('username') as HTMLInputElement
-          usernameInput.value = data.username
-        }
-      } catch (error) {
-        console.error('Error fetching settings:', error)
+<script>
+  const form = document.querySelector('#settings-form')
+
+  // Load current settings
+  async function loadSettings() {
+    try {
+      const response = await fetch('/api/admin/settings')
+      if (response.ok) {
+        const settings = await response.json()
+        
+        // Site settings
+        const titleInput = document.querySelector('#title')
+        const descriptionInput = document.querySelector('#description')
+        const authorInput = document.querySelector('#author')
+        
+        if (titleInput) titleInput.value = settings.site.title
+        if (descriptionInput) descriptionInput.value = settings.site.description
+        if (authorInput) authorInput.value = settings.site.author
+
+        // Appearance settings
+        const themeInput = document.querySelector('#theme')
+        const fontInput = document.querySelector('#font')
+        
+        if (themeInput) themeInput.value = settings.appearance.theme
+        if (fontInput) fontInput.value = settings.appearance.font
+
+        // Comment settings
+        const providerInput = document.querySelector('#provider')
+        if (providerInput) providerInput.value = settings.comment?.provider || 'giscus'
+      }
+    } catch (error) {
+      console.error('Error loading settings:', error)
+    }
+  }
+
+  loadSettings()
+
+  // Handle form submit
+  form?.addEventListener('submit', async (e) => {
+    e.preventDefault()
+    const formData = new FormData(e.target as HTMLFormElement)
+
+    const data = {
+      site: {
+        title: formData.get('title'),
+        description: formData.get('description'),
+        author: formData.get('author')
+      },
+      appearance: {
+        theme: formData.get('theme'),
+        font: formData.get('font')
+      },
+      comment: {
+        provider: formData.get('provider')
       }
     }
 
-    // 更新設置
-    form?.addEventListener('submit', async (e) => {
-      e.preventDefault()
-      const formData = new FormData(e.target as HTMLFormElement)
-      
-      try {
-        const response = await fetch('/api/admin/settings', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            username: formData.get('username'),
-            password: formData.get('password'),
-          }),
-        })
+    try {
+      const response = await fetch('/api/admin/settings', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+      })
 
-        if (response.ok) {
-          alert('設置已更新')
-        } else {
-          alert('更新失敗，請稍後重試')
-        }
-      } catch (error) {
-        console.error('Error updating settings:', error)
-        alert('更新失敗，請稍後重試')
+      if (response.ok) {
+        window.location.reload()
+      } else {
+        console.error('Failed to update settings')
       }
-    })
-
-    // 頁面加載時獲取當前設置
-    getCurrentSettings()
-  </script>
-</AdminLayout>
+    } catch (error) {
+      console.error('Error updating settings:', error)
+    }
+  })
+</script>

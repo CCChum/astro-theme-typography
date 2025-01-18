@@ -1,39 +1,34 @@
 ---
-import type { CommentConfig } from '@/types'
+import type { TwikooConfig } from '@/types'
 
-interface Props {
-  config: CommentConfig['twikoo']
+export interface Props extends TwikooConfig {
+  path?: string
 }
 
-const { config } = Astro.props
+const { envId, region = 'ap-shanghai', path, lang = 'en' } = Astro.props
 
-if (!config?.envId) {
+if (!envId) {
   throw new Error('Twikoo envId is required')
 }
 
-const twikooConfig = {
-  envId: config.envId,
-  region: config.region,
-}
 ---
 
-<div id="twikoo" class="mt-10"></div>
-
-<script define:vars={{ twikooConfig }}>
-  window.twikooConfig = twikooConfig;
-  (function loadTwikoo() {
-    var script = document.createElement('script');
-    script.src = 'https://cdn.jsdelivr.net/npm/twikoo@latest';
-    script.onload = function() {
-      window.twikoo?.init({
-        envId: twikooConfig.envId,
-        region: twikooConfig.region,
-        el: '#twikoo',
-      });
-    };
-    document.head.appendChild(script);
-  })();
-</script>
+{
+  envId && (
+    <div id="twikoo"></div>
+    <script src="https://cdn.staticfile.org/twikoo/1.6.21/twikoo.all.min.js" is:inline></script>
+    <script define:vars={{ envId, region, path, lang }}>
+      window.addEventListener('load', () => {
+        twikoo.init({
+          envId,
+          region,
+          path: path || window.location.pathname,
+          lang
+        })
+      })
+    </script>
+  )
+}
 
 <style>
   #twikoo {

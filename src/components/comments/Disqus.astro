@@ -1,44 +1,26 @@
 ---
-interface Props {
-  config: {
-    shortname: string;
-    url?: string;
-    identifier?: string;
-    title?: string;
-  };
-}
+import type { DisqusConfig } from '@/types'
 
-const { config } = Astro.props;
+type Props = DisqusConfig
 
-if (!config?.shortname) {
-  throw new Error('Disqus shortname is required');
-}
-
-const disqusConfig = {
-  shortname: config.shortname,
-  url: config.url || Astro.url.href,
-  identifier: config.identifier || Astro.url.pathname,
-  title: config.title || document.title
-};
+const { shortname } = Astro.props
 ---
 
-{
-  config?.shortname && (
-    <div id="disqus_thread"></div>
+<div id="disqus_thread"></div>
 
-    <script define:vars={{ disqusConfig }}>
-      window.disqus_config = function() {
-        this.page.url = disqusConfig.url;
-        this.page.identifier = disqusConfig.identifier;
-        this.page.title = disqusConfig.title;
-      };
-
-      (function() {
-        var d = document, s = d.createElement('script');
-        s.src = `https://${disqusConfig.shortname}.disqus.com/embed.js`;
-        s.setAttribute('data-timestamp', String(+new Date()));
-        (d.head || d.body).appendChild(s);
-      })();
-    </script>
-  )
-}
+<script define:vars={{ shortname }} is:inline>
+  var disqus_config = function () {
+    this.page.url = window.location.href
+    this.page.identifier = window.location.pathname
+  }
+  ;(function () {
+    var d = document,
+      s = d.createElement('script')
+    s.src = 'https://' + shortname + '.disqus.com/embed.js'
+    s.setAttribute('data-timestamp', +new Date())
+    ;(d.head || d.body).appendChild(s)
+  })()
+</script>
+<noscript>
+  Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a>
+</noscript>

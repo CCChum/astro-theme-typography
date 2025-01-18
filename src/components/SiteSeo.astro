@@ -1,54 +1,43 @@
 ---
-import { themeConfig } from '@/config/default'
-import { SEO } from 'astro-seo'
-import type { TwitterCardType } from 'astro-seo'
+import { themeConfig } from '@/config'
 
 interface Props {
   title?: string
   description?: string
   image?: string
-  article?: boolean
-  canonicalURL?: URL
 }
 
-const { title, description, image, article, canonicalURL } = Astro.props
-
-const siteTitle = title
-  ? `${title} - ${themeConfig.site.title}`
-  : themeConfig.site.title
-
+const { title, description, image } = Astro.props
+const siteTitle = title ? `${title} | ${themeConfig.site.title}` : themeConfig.site.title
 const siteDescription = description || themeConfig.site.description
-
-const openGraph = {
-  basic: {
-    title: siteTitle,
-    type: article ? 'article' : 'website',
-    image: image || '/og-image.png',
-  },
-  optional: {
-    description: siteDescription,
-    siteName: themeConfig.site.title,
-  },
-  image: {
-    alt: siteTitle,
-  },
-}
-
-const twitter: {
-  card: TwitterCardType
-  site?: string
-  creator?: string
-} = {
-  card: image ? 'summary_large_image' : 'summary',
-  site: themeConfig.site.title,
-  creator: themeConfig.author,
-}
+const canonicalURL = new URL(Astro.url.pathname, Astro.site)
+const ogImage = image ? new URL(image, Astro.site) : new URL('/og-image.png', Astro.site)
 ---
 
-<SEO
-  title={siteTitle}
-  description={siteDescription}
-  openGraph={openGraph}
-  twitter={twitter}
-  canonical={canonicalURL}
-/>
+<!-- Primary Meta Tags -->
+<title>{siteTitle}</title>
+<meta name="title" content={siteTitle} />
+<meta name="description" content={siteDescription} />
+<link rel="canonical" href={canonicalURL} />
+
+<!-- Open Graph / Facebook -->
+<meta property="og:type" content="website" />
+<meta property="og:url" content={canonicalURL} />
+<meta property="og:title" content={siteTitle} />
+<meta property="og:description" content={siteDescription} />
+<meta property="og:image" content={ogImage} />
+
+<!-- Twitter -->
+<meta property="twitter:card" content="summary_large_image" />
+<meta property="twitter:url" content={canonicalURL} />
+<meta property="twitter:title" content={siteTitle} />
+<meta property="twitter:description" content={siteDescription} />
+<meta property="twitter:image" content={ogImage} />
+
+<!-- Theme Color -->
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
+<meta name="theme-color" content="#0f172a" media="(prefers-color-scheme: dark)" />
+
+<!-- Language -->
+<meta property="og:locale" content={themeConfig.site.language} />
+<meta name="language" content={themeConfig.site.language} />

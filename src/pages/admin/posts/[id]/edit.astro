@@ -1,117 +1,170 @@
 ---
-import type { AdminLayoutProps } from '@/types'
+import { themeConfig } from '@/config'
 import AdminLayout from '@/layouts/AdminLayout.astro'
-import { themeConfig } from '@/config/default'
+import type { AdminLayoutProps } from '@/types'
 
-interface Props extends AdminLayoutProps {
-  post: CollectionEntry<'posts'>
-}
-
-const { post } = Astro.props
 const { id } = Astro.params
 
+const props: AdminLayoutProps = {
+  title: 'Edit Post',
+  description: 'Edit blog post',
+  config: themeConfig
+}
 ---
 
-<AdminLayout
-  config={themeConfig}
-  title={`Edit Post: ${post.data.title}`}
-  description={`Edit post ${post.data.title}`}
->
-  <div class="container mx-auto px-4 py-8 space-y-8">
-    <h1 class="text-3xl font-bold">Edit Post: {post.data.title}</h1>
-    
-    <form
-      id="edit-form"
-      class="space-y-6"
-      method="POST"
-      action={`/api/posts/${id}`}
-    >
+<AdminLayout {...props}>
+  <div class="container mx-auto px-4 py-8">
+    <h1 class="mb-8 text-3xl font-bold">Edit Post</h1>
+    <form id="post-form" class="space-y-6">
       <div>
-        <label class="block text-sm font-medium text-gray-700">Title</label>
+        <label for="title" class="mb-2 block text-sm font-medium">Title</label>
         <input
           type="text"
+          id="title"
           name="title"
-          value={post.data.title}
-          class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+          class="w-full rounded-lg border p-2"
+          required
         />
       </div>
-
       <div>
-        <label class="block text-sm font-medium text-gray-700">Description</label>
+        <label for="content" class="mb-2 block text-sm font-medium">Content</label>
         <textarea
-          name="description"
-          rows="3"
-          class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-        >
-          {post.data.description}
-        </textarea>
-      </div>
-
-      <div>
-        <label class="block text-sm font-medium text-gray-700">Content</label>
-        <textarea
+          id="content"
           name="content"
-          rows="20"
-          class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 font-mono"
-        >
-          {post.body}
-        </textarea>
+          rows="10"
+          class="w-full rounded-lg border p-2"
+          required></textarea>
       </div>
-
       <div>
-        <label class="block text-sm font-medium">
+        <label for="categories" class="mb-2 block text-sm font-medium"
+          >Categories</label
+        >
+        <input
+          type="text"
+          id="categories"
+          name="categories"
+          class="w-full rounded-lg border p-2"
+          placeholder="Comma-separated categories"
+        />
+      </div>
+      <div>
+        <label for="tags" class="mb-2 block text-sm font-medium">Tags</label>
+        <input
+          type="text"
+          id="tags"
+          name="tags"
+          class="w-full rounded-lg border p-2"
+          placeholder="Comma-separated tags"
+        />
+      </div>
+      <div>
+        <label for="draft" class="inline-flex items-center">
           <input
             type="checkbox"
+            id="draft"
             name="draft"
-            class="mr-2"
-            checked={post.data.draft}
+            class="rounded border-gray-300"
           />
-          Draft
+          <span class="ml-2 text-sm">Save as draft</span>
         </label>
       </div>
-
-      <div class="flex justify-end space-x-4">
-        <button
-          type="button"
-          class="inline-flex justify-center rounded-md border border-transparent bg-red-600 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
-          onclick={`window.location.href='/admin/posts'`}
-        >
-          Cancel
-        </button>
+      <div class="flex space-x-4">
         <button
           type="submit"
-          class="inline-flex justify-center rounded-md border border-transparent bg-indigo-600 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+          class="rounded-lg bg-blue-500 px-4 py-2 text-white hover:bg-blue-600"
         >
-          Save
+          Update Post
+        </button>
+        <button
+          type="button"
+          id="delete-btn"
+          class="rounded-lg bg-red-500 px-4 py-2 text-white hover:bg-red-600"
+        >
+          Delete Post
         </button>
       </div>
     </form>
   </div>
 </AdminLayout>
 
-<script>
-document.getElementById('edit-form')?.addEventListener('submit', async (e) => {
-  e.preventDefault()
-  const form = e.target as HTMLFormElement
-  const formData = new FormData(form)
-  
-  try {
-    const response = await fetch(form.action, {
-      method: 'PUT',
-      body: JSON.stringify(Object.fromEntries(formData)),
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    })
-    
-    if (response.ok) {
-      window.location.href = '/admin/posts'
-    } else {
-      alert('Failed to update post')
+<script define:vars={{ id }}>
+  const form = document.querySelector('#post-form')
+  const deleteBtn = document.querySelector('#delete-btn')
+
+  // Load post data
+  async function loadPost() {
+    try {
+      const response = await fetch(`/api/posts/${id}`)
+      if (response.ok) {
+        const post = await response.json()
+        
+        const titleInput = document.querySelector('#title')
+        const contentInput = document.querySelector('#content')
+        const categoriesInput = document.querySelector('#categories')
+        const tagsInput = document.querySelector('#tags')
+        const draftInput = document.querySelector('#draft')
+
+        if (titleInput) titleInput.value = post.title
+        if (contentInput) contentInput.value = post.content
+        if (categoriesInput) categoriesInput.value = post.categories?.join(', ') || ''
+        if (tagsInput) tagsInput.value = post.tags?.join(', ') || ''
+        if (draftInput) draftInput.checked = post.draft
+      }
+    } catch (error) {
+      console.error('Error loading post:', error)
     }
-  } catch (error) {
-    console.error('Error:', error)
-    alert('Failed to update post')
   }
-})
+
+  loadPost()
+
+  // Handle form submit
+  form?.addEventListener('submit', async (e) => {
+    e.preventDefault()
+    const formData = new FormData(e.target as HTMLFormElement)
+
+    const data = {
+      title: formData.get('title'),
+      content: formData.get('content'),
+      categories: formData.get('categories')?.toString().split(',').map(c => c.trim()),
+      tags: formData.get('tags')?.toString().split(',').map(t => t.trim()),
+      draft: formData.get('draft') === 'on'
+    }
+
+    try {
+      const response = await fetch(`/api/posts/${id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+      })
+
+      if (response.ok) {
+        window.location.href = '/admin/posts'
+      } else {
+        console.error('Failed to update post')
+      }
+    } catch (error) {
+      console.error('Error updating post:', error)
+    }
+  })
+
+  // Handle delete
+  deleteBtn?.addEventListener('click', async () => {
+    if (confirm('Are you sure you want to delete this post?')) {
+      try {
+        const response = await fetch(`/api/posts/${id}`, {
+          method: 'DELETE'
+        })
+
+        if (response.ok) {
+          window.location.href = '/admin/posts'
+        } else {
+          console.error('Failed to delete post')
+        }
+      } catch (error) {
+        console.error('Error deleting post:', error)
+      }
+    }
+  })
 </script>

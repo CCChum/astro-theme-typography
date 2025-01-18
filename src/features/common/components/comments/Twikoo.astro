@@ -1,22 +1,27 @@
 ---
-import { themeConfig } from '~/.config'
+import type { TwikooConfig } from '@/types'
 
-interface Props {
-  path: string
+export interface Props extends TwikooConfig {
+  path?: string
 }
 
-const twikooConfig = {
-  ...themeConfig.comment?.twikoo,
-  el: '#tcomment',
-  path: Astro.props.path,
-}
+const { envId, region, path, lang } = Astro.props
 ---
 
-<div id="tcomment"></div>
-<script is:inline src="https://cdn.staticfile.org/twikoo/1.6.32/twikoo.all.min.js"></script>
-<script is:inline define:vars={{ config: twikooConfig }}>
-  twikoo.init(config)
+<div id="twikoo"></div>
+
+<script define:vars={{ envId, region, path, lang }}>
+  window.addEventListener('load', () => {
+    twikoo.init({
+      envId,
+      region,
+      path,
+      lang
+    })
+  })
 </script>
+
+<script src="https://cdn.jsdelivr.net/npm/twikoo@1.6.16/dist/twikoo.all.min.js"></script>
 
 <style is:global>
   .tk-meta-input {

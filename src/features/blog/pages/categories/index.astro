@@ -1,31 +1,23 @@
 ---
-import type { Language } from '@/i18n'
-import { themeConfig } from '@/config/default'
+import { themeConfig } from '@/config'
 import LayoutDefault from '@/layouts/LayoutDefault.astro'
-import { t } from '@/i18n'
+import { useTranslations } from '@/i18n'
+import type { Language } from '@/i18n'
 
-const { categoryMap } = themeConfig.site
-const categories = Array.isArray(categoryMap) ? categoryMap : []
-
-const locale = Astro.locals.language as Language
+const locale = (Astro.locals.locale || 'en') as Language
+const { t } = useTranslations(locale)
 ---
 
-<LayoutDefault>
+<LayoutDefault config={themeConfig}>
   <div class="container mx-auto px-4 py-8">
-    <h1 class="text-3xl font-bold mb-8">
-      {t('meta.categories', locale)}
-    </h1>
-
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      {categories.map((category) => (
+    <h1 class="text-4xl font-bold mb-8">{t('categories.title')}</h1>
+    <div class="grid gap-4">
+      {themeConfig.categoryMap.map(({ name, value }) => (
         <a
-          href={`/categories/${category.path}`}
-          class="block p-6 bg-white rounded-lg shadow hover:shadow-md transition-shadow duration-200"
+          href={`/categories/${value}`}
+          class="p-4 bg-white dark:bg-gray-800 rounded-lg shadow hover:shadow-md transition-shadow"
         >
-          <h2 class="text-xl font-semibold mb-2">{category.name}</h2>
-          <p class="text-gray-600">
-            {category.path}
-          </p>
+          <h2 class="text-xl font-semibold">{name}</h2>
         </a>
       ))}
     </div>
